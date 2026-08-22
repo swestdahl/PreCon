@@ -1,0 +1,2188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Board Bard Pre-Con Escalation League Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧙</text></svg>">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --w-color: #fef08a;
+      --u-color: #60a5fa;
+      --b-color: #a855f7;
+      --r-color: #f87171;
+      --g-color: #4ade80;
+      --c-color: #cbd5e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+    header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #818cf8, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: #312e81;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #4338ca;
+    }
+    nav {
+      background: #1e293b;
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 24px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    nav button {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    nav button:hover {
+      background: #334155;
+      color: var(--text);
+    }
+    nav button.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    main {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #f1f5f9;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-box .val {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-box .label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    th {
+      background: #0f172a;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-banned { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-conditional { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-testing { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-legal { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .mana-pip {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-right: 3px;
+    }
+    .mana-W { background: var(--w-color); color: #713f12; }
+    .mana-U { background: var(--u-color); color: #1e3a8a; }
+    .mana-B { background: var(--b-color); color: #3b0764; }
+    .mana-R { background: var(--r-color); color: #7f1d1d; }
+    .mana-G { background: var(--g-color); color: #064e3b; }
+    .mana-C { background: var(--c-color); color: #1e293b; }
+    
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      padding: 9px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #f8fafc;
+      font-size: 0.9rem;
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      max-width: 720px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .pod-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .pod-card h3 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .draft-step {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 0.88rem;
+    }
+  
+    /* Toast Notification */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid var(--accent);
+      border-left: 5px solid var(--success);
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .toast-success { border-left-color: var(--success); }
+    .toast-error { border-left-color: var(--danger); border-color: var(--danger); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>⚔️ MTG Pre-Con League Tracker</h1>
+      <span>The Board Bard Pre-Con Escalation League</span>
+    </div>
+    <div>
+      <button class="btn" onclick="openGameModal()">➕ Log Match</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="switchTab('dashboard')">📊 Dashboard & Standings</button>
+    <button onclick="switchTab('pods')">🎲 Pod Generator</button>
+    <button onclick="switchTab('games')">⚔️ Match History</button>
+    <button onclick="switchTab('precons')" id="tab-btn-precons" onclick="switchTab('precons')">📚 Precon Catalog</button>
+    <button onclick="switchTab('players')">👥 Players & Decks</button>
+    <button onclick="switchTab('rules')">📜 League Rules & Draft Guide</button>
+    <button onclick="switchTab('settings')">⚙️ Data & Settings</button>
+    <button onclick="switchTab('admin')">🛠️ Admin Tools</button>
+  </nav>
+
+  <main>
+    <!-- TAB: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-pane active">
+      <div class="grid-4">
+        <div class="stat-box">
+          <div class="val" id="stat-total-games">0</div>
+          <div class="label">Matches Logged</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="stat-active-players">0</div>
+          <div class="label">Active Players</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="stat-unique-decks">0</div>
+          <div class="label">Decks Played</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="stat-precon-count">--</div>
+          <div class="label">Official Precons</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>
+          <span>🏆 Leaderboard & Standings</span>
+          <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">Points: 1st (4pts), 2nd (3pts), 3rd (2pts), 4th (1pt)</span>
+        </h2>
+        <div style="overflow-x: auto;">
+          <table id="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Games</th>
+                <th>Wins (1st)</th>
+                <th>Top 2</th>
+                <th>Win %</th>
+                <th>Avg Finish</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 30px;">No match data recorded yet. Use <b>➕ Log Match</b> to record your first game!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: POD GENERATOR -->
+    <div id="tab-pods" class="tab-pane">
+      <div class="card">
+        <h2>🎲 League Pod Generator & Match Lobbies</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">Generate balanced pods for Game 1 or Game 2. Creating pods automatically generates <b>Live Match Lobbies</b> where players simply pick their precon deck, enter placements, and verify to record the match!</p>
+        
+        <div class="grid-2">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin: 0;">ENTER ATTENDING PLAYERS (one per line):</label>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="clearAttendingPlayers()" style="padding: 2px 8px; font-size: 0.75rem;">Clear List</button>
+            </div>
+            <textarea id="pod-players-input" rows="6" placeholder="Lou&#10;Kate&#10;Jonah&#10;Juan&#10;Steven&#10;Matt&#10;Gabe&#10;Lucy" oninput="renderPlayerRosterPills()"></textarea>
+
+            <!-- Quick Add / Autocomplete Search -->
+            <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+              <input type="text" id="quick-add-player-input" list="known-players-datalist" placeholder="⚡ Quick-add known player..." style="margin: 0; padding: 6px 10px; font-size: 0.85rem; flex: 1;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); quickAddPlayer(); }">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="quickAddPlayer()" style="white-space: nowrap;">+ Add</button>
+            </div>
+
+            <!-- Roster Clickable Tag Pills -->
+            <div id="known-players-pills-container" style="margin-bottom: 12px;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">LEAGUE ROSTER (Click to toggle attending):</div>
+              <div id="known-players-pills" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; padding: 6px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+                <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No players recorded in match history yet.</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn" onclick="generatePods(1)">🎲 Generate Game 1 Pod Lobbies</button>
+              <button class="btn btn-secondary" onclick="generatePods(2)">🏆 Pair Game 2 (Winners Pods)</button>
+            </div>
+          </div>
+          <div>
+            <div id="generated-pods-output">
+              <div style="background: #0f172a; border: 1px dashed var(--card-border); border-radius: 8px; padding: 30px; text-align: center; color: var(--text-muted);">
+                Generated pods and match lobbies will appear below.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING MATCH LOBBIES -->
+      <div class="card" id="active-lobbies-card" style="margin-top: 20px;">
+        <h2>
+          <span>⚔️ Active Match Lobbies (<span id="lobby-count">0</span> Pending)</span>
+          <button class="btn btn-sm btn-secondary" onclick="clearAllLobbies()">Clear All Lobbies</button>
+        </h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.85rem;">TopDeck-style match lobbies: players report their precon and rank when the game ends. Click <b>✓ Verify & Record Match</b> to commit to the official standings.</p>
+        <div id="lobbies-container">
+          <div style="text-align: center; color: var(--text-muted); padding: 24px;">No active match lobbies. Generate pods above to spawn lobbies.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MATCH HISTORY -->
+    <div id="tab-games" class="tab-pane">
+      <div class="card">
+        <h2>
+          <span>⚔️ Recorded Matches</span>
+          <button class="btn btn-sm" onclick="openGameModal()">➕ Log Match</button>
+        </h2>
+        <div id="games-container">
+          <p style="text-align: center; color: var(--text-muted); padding: 30px;">No games recorded yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PRECON CATALOG -->
+    <div id="tab-precons" class="tab-pane">
+      <div class="card">
+        <h2>
+          <span>📚 Official Precon Catalog & Banlist</span>
+          <span id="precon-total-count" style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">169 Precons Tracked</span>
+        </h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <input type="text" id="precon-search" placeholder="🔍 Search deck name, commander, or set..." style="flex: 2; min-width: 200px; margin: 0;" oninput="filterPrecons()">
+          <select id="precon-filter-status" style="flex: 1; min-width: 140px; margin: 0;" onchange="filterPrecons()">
+            <option value="ALL">All Statuses</option>
+            <option value="Legal">Fully Legal</option>
+            <option value="Conditional">Alt Commander Required</option>
+            <option value="Banned">Banned Deck</option>
+            <option value="Testing">Testing</option>
+          </select>
+          <select id="precon-filter-color" style="flex: 1; min-width: 130px; margin: 0;" onchange="filterPrecons()">
+            <option value="ALL">All Colors</option>
+            <option value="W">White (W)</option>
+            <option value="U">Blue (U)</option>
+            <option value="B">Black (B)</option>
+            <option value="R">Red (R)</option>
+            <option value="G">Green (G)</option>
+            <option value="C">Colorless</option>
+          </select>
+        </div>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr style="user-select: none;">
+                <th onclick="sortPrecons('status')" style="cursor: pointer;" title="Sort by Status">Status ↕</th>
+                <th onclick="sortPrecons('name')" style="cursor: pointer;" title="Sort by Deck Name">Deck Name ↕</th>
+                <th onclick="sortPrecons('commander')" style="cursor: pointer;" title="Sort by Face Commander">Face Commander ↕</th>
+                <th onclick="sortPrecons('alt_commander')" style="cursor: pointer; color: #38bdf8;" title="Sort by Alternate Commander">Alternate Commander(s) ↕</th>
+                <th onclick="sortPrecons('colors')" style="cursor: pointer;" title="Sort by Colors">Colors ↕</th>
+                <th onclick="sortPrecons('set_code')" style="cursor: pointer;" title="Sort by Set">Set ↕</th>
+                <th>Details / Notes</th>
+              </tr>
+            </thead>
+            <tbody id="precon-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PLAYERS & DECKS -->
+    <div id="tab-players" class="tab-pane">
+      <div class="card">
+        <h2>👥 League Players & Assigned Decks</h2>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Player Name</th>
+                <th>Current / Most Played Deck</th>
+                <th>Games</th>
+                <th>Wins</th>
+                <th>Win %</th>
+              </tr>
+            </thead>
+            <tbody id="players-list-body">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No players recorded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LEAGUE RULES -->
+    <div id="tab-rules" class="tab-pane">
+      <div class="card">
+        <h2>📜 The Board Bard Pre-Con Escalation League Rules</h2>
+        <div style="font-size: 0.95rem; line-height: 1.7; color: #cbd5e1;">
+          <h3 style="color: var(--accent); margin: 12px 0 6px;">1. Buy-in & Prizes</h3>
+          <p>• <b>Buy-in:</b> $6 at the front desk, refunded entirely back in the form of booster packs for prizes.</p>
+          <p>• <b>Schedule:</b> Play 2 games of Commander per league session (1:00pm – 6:00pm).</p>
+          <p>• <b>Format:</b> Bring your favorite unaltered Commander Pre-con to play on a level playing field.</p>
+
+          <h3 style="color: var(--accent); margin: 18px 0 6px;">2. Pod Pairings (Game 1 & Game 2)</h3>
+          <p>• <b>Game 1:</b> Randomized 4-player pods (or 3/5 depending on attendance).</p>
+          <p>• <b>Turn Order:</b> Roll 2D6 to determine turn order (highest goes first, clockwise).</p>
+          <p>• <b>Game 2 ("Winners Pods"):</b> Pair 1st & 2nd place finishers together; pair 3rd & 4th place finishers together.</p>
+
+          <h3 style="color: var(--accent); margin: 18px 0 6px;">3. Prize Booster Snake Drafting</h3>
+          <p>• After each game, open booster packs face up on the table (2 packs for a 4-player game, 3 packs for 5 players).</p>
+          <p>• <b>Pack Chooser:</b> 4th place (first knocked out) picks which prize packs are opened.</p>
+          <p>• <b>Snake Draft Order:</b> 1st Place picks 1st card ➔ 2nd picks ➔ 3rd picks ➔ 4th picks ➔ 4th picks ➔ 3rd picks ➔ 2nd picks ➔ 1st picks ➔ repeat until all cards are drafted.</p>
+
+          <h3 style="color: var(--accent); margin: 18px 0 6px;">4. Deck Building & Upgrades</h3>
+          <p>• Any cards drafted during the league may be added to your precon deck (must remain exactly 100 cards).</p>
+          <p>• Players are allowed to trade drafted cards with other league members.</p>
+          <p>• Keep your drafted card pool separate from personal collections.</p>
+
+          <h3 style="color: var(--accent); margin: 18px 0 6px;">5. Bi-Yearly League Reset</h3>
+          <p>• On <b>January 1st</b> and <b>July 1st</b>, all decks reset! All drafted cards are removed and decks return to their official stock pre-con lists.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ADMIN TOOLS -->
+    <div id="tab-admin" class="tab-pane">
+      <div class="card">
+        <h2>🛠️ Admin Tools</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">Manage, edit, and export league match data. Administrators can edit or delete individual matches and generate detailed reports.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+          <button class="btn" onclick="exportStandingsCSV()">📄 Export Standings (CSV)</button>
+          <button class="btn" onclick="exportMatchesCSV()">📄 Export Match Log (CSV)</button>
+          <button class="btn btn-secondary" onclick="exportHTMLReport()">📄 Export League Report (HTML)</button>
+        </div>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Round</th>
+                <th>Players</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-games-body">
+              <tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">No match data recorded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⚙️ Match Editor</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">Select a match from the list above, or edit one below, to change round, date, or player results.</p>
+        <form id="admin-edit-form" onsubmit="saveAdminEdit(event)">
+          <input type="hidden" id="edit-idx" value="-1">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Round / Game #:</label>
+              <select id="edit-round">
+                <option value="1">Round 1 (Game 1)</option>
+                <option value="2">Round 2 (Game 2 - Winners Pod)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date:</label>
+              <input type="date" id="edit-date">
+            </div>
+          </div>
+          <div id="edit-player-rows"></div>
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addAdminRow()">+ Add Player</button>
+            <button type="submit" class="btn">💾 Save Changes</button>
+            <button type="button" class="btn btn-danger" onclick="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>📊 Stats Report</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">Select a date range and generate a summary report of wins, points, and attendance.</p>
+        <div class="form-group">
+          <label>Start Date:</label>
+          <input type="date" id="report-start">
+        </div>
+        <div class="form-group">
+          <label>End Date:</label>
+          <input type="date" id="report-end">
+        </div>
+        <button class="btn" onclick="generateReport()">📉 Generate Report (CSV)</button>
+      </div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" class="tab-pane">
+      <div class="card">
+        <h2>⚙️ League Data & Backup</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">Export your league data to a JSON backup file or import existing records.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn" onclick="exportData()">💾 Export League Data (JSON)</button>
+          <label class="btn btn-secondary" style="cursor: pointer; margin: 0;">
+            📂 Import League Data <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+          </label>
+          <button class="btn btn-danger" onclick="clearData()">🗑️ Reset Match Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Footer -->
+    <footer style="text-align: center; padding: 24px 16px; margin-top: 32px; border-top: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.82rem;">
+      Created by <span style="color: var(--accent); font-weight: 600;">SomewhatUnique</span> & <span style="color: var(--text); font-weight: 600;">rool</span>
+    </footer>
+  </main>
+
+  <!-- LOG GAME MODAL -->
+  <div id="game-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-size: 1.2rem; margin: 0;">➕ Log League Match</h2>
+        <button onclick="closeGameModal()" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
+      </div>
+      <form id="game-form" onsubmit="saveGame(event)">
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Round / Game #:</label>
+            <select id="form-round" required>
+              <option value="1">Round 1 (Game 1)</option>
+              <option value="2">Round 2 (Game 2 - Winners Pod)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date:</label>
+            <input type="date" id="form-date" required>
+          </div>
+        </div>
+
+        <h4 style="color: var(--accent); margin: 12px 0 8px;">Player Results (Knockout Order):</h4>
+        <div id="player-rows">
+          <!-- 4 player rows generated dynamically -->
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+          <button type="button" id="btn-add-player-slot" class="btn btn-secondary btn-sm" onclick="addPlayerRow()">+ Add 4th Player</button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary" onclick="closeGameModal()">Cancel</button>
+            <button type="submit" class="btn">💾 Save Match</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const PRECONS = [{"name": "20 Ways to Win", "commander": "Go-Shintai of Life's Origin", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["B", "G", "R", "U", "W"], "status": "Legal", "rating": 5.0, "price": 265.43, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/1825?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $265.43 \u2014 Released: 2019-12-02", "commander_status": "Legal", "alt_commander": "-"}, {"name": "Abzan Armor", "commander": "Felothar the Steadfast", "set_code": "TDC", "set_name": "Tarkir: Dragonstorm Commander", "colors": ["B", "G", "W"], "status": "Legal", "rating": 4.5, "price": 67.65, "release_date": "2025-04-11", "card_image": "https://api.scryfall.com/cards/tdc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tarkir: Dragonstorm Commander (TDC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $67.65 \u2014 Released: 2025-04-11", "commander_status": "Legal", "alt_commander": "Betor, Ancestor's Voice"}, {"name": "Adaptive Enchantment", "commander": "Estrid, the Masked", "set_code": "C18", "set_name": "Commander 2018", "colors": ["G", "U", "W"], "status": "Legal", "rating": 4.5, "price": 58.48, "release_date": "2018-08-10", "card_image": "https://api.scryfall.com/cards/c18/40?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2018 (C18) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $58.48 \u2014 Released: 2018-08-10", "commander_status": "Legal", "alt_commander": "Kestia, the Cultivator / Tuvasa the Sunlit"}, {"name": "Ahoy Mateys", "commander": "Admiral Brass, Unsinkable", "set_code": "LCC", "set_name": "The Lost Caverns of Ixalan Commander", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.5, "price": 60.49, "release_date": "2023-11-17", "card_image": "https://api.scryfall.com/cards/lcc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: The Lost Caverns of Ixalan Commander (LCC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $60.49 \u2014 Released: 2023-11-17", "commander_status": "Legal", "alt_commander": "Don Andres, the Renegade / Francisco + Breeches"}, {"name": "Animated Army", "commander": "Bello, Bard of the Brambles", "set_code": "BLC", "set_name": "Bloomburrow Commander", "colors": ["G", "R"], "status": "Legal", "rating": 4.25, "price": 54.01, "release_date": "2024-08-02", "card_image": "https://api.scryfall.com/cards/blc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Bloomburrow Commander (BLC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $54.01 \u2014 Released: 2024-08-02", "commander_status": "Legal", "alt_commander": "Wildsear, Scouring Maw"}, {"name": "Arcane Maelstrom", "commander": "Kalamax, the Stormsire", "set_code": "C20", "set_name": "Commander 2020", "colors": ["G", "R", "U"], "status": "Legal", "rating": 5.25, "price": 122.6, "release_date": "2020-04-17", "card_image": "https://api.scryfall.com/cards/c20/9?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2020 (C20) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $122.60 \u2014 Released: 2020-04-17", "commander_status": "Legal", "alt_commander": "Haldan, Avid Arcanist + Pako, Arcane Retriever / Xyris"}, {"name": "Arcane Wizardry", "commander": "Inalla, Archmage Ritualist", "set_code": "C17", "set_name": "Commander 2017", "colors": ["B", "R", "U"], "status": "Banned", "rating": 5.0, "price": 50.77, "release_date": "2017-08-25", "card_image": "https://api.scryfall.com/cards/c17/38?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2017 (C17) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $50.77 \u2014 Released: 2017-08-25", "commander_status": "Banned", "alt_commander": "Mairsil, the Pretender / Kess, Dissident Mage"}, {"name": "Arm for Battle", "commander": "Wyleth, Soul of Steel", "set_code": "CMR", "set_name": "Commander Legends", "colors": ["R", "W"], "status": "Legal", "rating": 5.5, "price": 83.44, "release_date": "2020-11-20", "card_image": "https://api.scryfall.com/cards/cmr/362?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Legends (CMR) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $83.44 \u2014 Released: 2020-11-20", "commander_status": "Legal", "alt_commander": "Sram, Senior Edificer"}, {"name": "Aura of Courage", "commander": "Galea, Kindler of Hope", "set_code": "AFR", "set_name": "Adventures in the Forgotten Realms", "colors": ["G", "U", "W"], "status": "Legal", "rating": 5.0, "price": 91.41, "release_date": "2021-07-23", "card_image": "https://api.scryfall.com/cards/afc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Adventures in the Forgotten Realms (AFR) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $91.41 \u2014 Released: 2021-07-23", "commander_status": "Legal", "alt_commander": "Storvald, Frost Giant Jarl"}, {"name": "Avengers Assemble", "commander": "Captain America, Team Leader", "set_code": "MSC", "set_name": "Marvel Super Heroes Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.75, "price": 72.89, "release_date": "2026-06-26", "card_image": "https://api.scryfall.com/cards/msc/879?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Marvel Super Heroes Commander (MSC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $72.89 \u2014 Released: 2026-06-26", "commander_status": "Legal", "alt_commander": "Iron Man, Titan of Innovation / Thor, God of Thunder"}, {"name": "Bedecked Brokers", "commander": "Perrie, the Pulverizer", "set_code": "SNC", "set_name": "Streets of New Capenna", "colors": ["G", "U", "W"], "status": "Legal", "rating": 4.75, "price": 65.55, "release_date": "2022-04-29", "card_image": "https://api.scryfall.com/cards/ncc/5?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Streets of New Capenna (SNC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $65.55 \u2014 Released: 2022-04-29", "commander_status": "Legal", "alt_commander": "Kros, Defense Contractor / Falco Spara, Pactweaver"}, {"name": "Blame Game", "commander": "Nelly Borca, Impulsive Accuser", "set_code": "MKC", "set_name": "Murders at Karlov Manor Commander", "colors": ["R", "W"], "status": "Legal", "rating": 5.5, "price": 104.86, "release_date": "2024-02-09", "card_image": "https://api.scryfall.com/cards/mkc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Murders at Karlov Manor Commander (MKC) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $104.86 \u2014 Released: 2024-02-09", "commander_status": "Legal", "alt_commander": "Feather, Radiant Arbiter"}, {"name": "Blast from the Past", "commander": "The Fourth Doctor", "set_code": "WHO", "set_name": "Doctor Who", "colors": ["G", "U", "W"], "status": "Legal", "rating": 5.75, "price": 69.6, "release_date": "2023-10-13", "card_image": "https://api.scryfall.com/cards/who/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Doctor Who (WHO) \u2014 CRISPI / Rating: 5.75 \u2014 Est. Price: $69.60 \u2014 Released: 2023-10-13", "commander_status": "Legal", "alt_commander": "The Sixth Doctor + Peri Brown / The Third / Fourth / Fifth / Seventh / Eighth Doctor"}, {"name": "Blight Curse", "commander": "Auntie Ool, Cursewretch", "set_code": "ECC", "set_name": "Lorwyn Eclipsed Commander", "colors": ["B", "G", "R"], "status": "Legal", "rating": 4.5, "price": 42.22, "release_date": "2026-01-23", "card_image": "https://api.scryfall.com/cards/ecc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Lorwyn Eclipsed Commander (ECC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $42.22 \u2014 Released: 2026-01-23", "commander_status": "Legal", "alt_commander": "The Reaper King No More"}, {"name": "Blood Rites", "commander": "Clavile\u00f1o, First of the Blessed", "set_code": "LCC", "set_name": "The Lost Caverns of Ixalan Commander", "colors": ["B", "W"], "status": "Legal", "rating": 5.0, "price": 112.24, "release_date": "2023-11-17", "card_image": "https://api.scryfall.com/cards/lcc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: The Lost Caverns of Ixalan Commander (LCC) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $112.24 \u2014 Released: 2023-11-17", "commander_status": "Legal", "alt_commander": "Carmen, Cruel Skymarcher / Mavren Fein"}, {"name": "Breed Lethality", "commander": "Atraxa, Praetors' Voice", "set_code": "C16", "set_name": "Commander 2016", "colors": ["B", "G", "U", "W"], "status": "Legal", "rating": 4.75, "price": 100.86, "release_date": "2016-11-11", "card_image": "https://api.scryfall.com/cards/c16/28?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2016 (C16) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $100.86 \u2014 Released: 2016-11-11 \u2014 NOTE: Deck is LEGAL with an alternate commander; Atraxa, Praetors' Voice is BANNED in the command zone.", "commander_status": "Banned", "alt_commander": "Ishai, Ojutai Dragonspeaker + Reyhan / Ikra Shidiqi / Tymna"}, {"name": "Buckle Up", "commander": "Kotori, Pilot Prodigy", "set_code": "NEO", "set_name": "Kamigawa: Neon Dynasty", "colors": ["U", "W"], "status": "Legal", "rating": 4.5, "price": 52.67, "release_date": "2022-02-18", "card_image": "https://api.scryfall.com/cards/nec/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Kamigawa: Neon Dynasty (NEO) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $52.67 \u2014 Released: 2022-02-18", "commander_status": "Legal", "alt_commander": "Shorikai, Genesis Engine"}, {"name": "Built from Scratch", "commander": "Daretti, Scrap Savant", "set_code": "C14", "set_name": "Commander 2014", "colors": ["R"], "status": "Legal", "rating": 4.0, "price": 88.19, "release_date": "2014-11-07", "card_image": "https://api.scryfall.com/cards/c14/33?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2014 (C14) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $88.19 \u2014 Released: 2014-11-07", "commander_status": "Legal", "alt_commander": "Feldon of the Third Path / Bosh, Iron Golem"}, {"name": "Cabaretti Cacophony", "commander": "Kitt Kanto, Mayhem Diva", "set_code": "SNC", "set_name": "Streets of New Capenna", "colors": ["G", "R", "W"], "status": "Legal", "rating": 5.5, "price": 111.68, "release_date": "2022-04-29", "card_image": "https://api.scryfall.com/cards/ncc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Streets of New Capenna (SNC) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $111.68 \u2014 Released: 2022-04-29", "commander_status": "Legal", "alt_commander": "Phabine, Boss's Confidant / Jinnie Fay, Jetmir's Second"}, {"name": "Call for Backup", "commander": "Bright-Palm, Soul Awakener", "set_code": "MOC", "set_name": "March of the Machine Commander", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.75, "price": 82.92, "release_date": "2023-04-21", "card_image": "https://api.scryfall.com/cards/moc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: March of the Machine Commander (MOC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $82.92 \u2014 Released: 2023-04-21", "commander_status": "Legal", "alt_commander": "Shalai and Hallar / Chishiro, the Shattered Blade"}, {"name": "Call the Spirits", "commander": "Daxos the Returned", "set_code": "C15", "set_name": "Commander 2015", "colors": ["B", "W"], "status": "Legal", "rating": 4.25, "price": 82.71, "release_date": "2015-11-13", "card_image": "https://api.scryfall.com/cards/c15/43?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2015 (C15) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $82.71 \u2014 Released: 2015-11-13", "commander_status": "Legal", "alt_commander": "Karlov of the Ghost Council / Teysa, Envoy of Ghosts"}, {"name": "Cavalry Charge", "commander": "Sidar Jabari of Zhalfir", "set_code": "MOC", "set_name": "March of the Machine Commander", "colors": ["B", "U", "W"], "status": "Legal", "rating": 4.5, "price": 64.81, "release_date": "2023-04-21", "card_image": "https://api.scryfall.com/cards/moc/5?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: March of the Machine Commander (MOC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $64.81 \u2014 Released: 2023-04-21", "commander_status": "Legal", "alt_commander": "Elenda and Azor / Syr Gwyn, Hero of Ashvale"}, {"name": "Chaos Incarnate", "commander": "Kardur, Doomscourge", "set_code": "SCD", "set_name": "Starter Commander Decks", "colors": ["B", "R"], "status": "Legal", "rating": 4.25, "price": 35.8, "release_date": "2022-12-02", "card_image": "https://api.scryfall.com/cards/scd/5?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Starter Commander Decks (SCD) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $35.80 \u2014 Released: 2022-12-02", "commander_status": "Legal", "alt_commander": "Kardur, Doomscourge"}, {"name": "Corrupting Influence", "commander": "Ixhel, Scion of Atraxa", "set_code": "ONC", "set_name": "Phyrexia: All Will Be One Commander", "colors": ["B", "G", "W"], "status": "Legal", "rating": 4.5, "price": 116.96, "release_date": "2023-02-10", "card_image": "https://api.scryfall.com/cards/onc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Phyrexia: All Will Be One Commander (ONC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $116.96 \u2014 Released: 2023-02-10", "commander_status": "Legal", "alt_commander": "Vishgraz, the Doomhive"}, {"name": "Counter Blitz", "commander": "Tidus, Yuna's Guardian", "set_code": "FIC", "set_name": "Final Fantasy Commander", "colors": ["G", "U", "W"], "status": "Banned", "rating": 4.5, "price": 62.32, "release_date": "2025-06-13", "card_image": "https://api.scryfall.com/cards/fic/5?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Final Fantasy Commander (FIC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $62.32 \u2014 Released: 2025-06-13", "commander_status": "Banned", "alt_commander": "Yuna, Grand Summoner"}, {"name": "Counter Intelligence", "commander": "Inspirit, Flagship Vessel", "set_code": "EOC", "set_name": "Edge of Eternities Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.25, "price": 54.34, "release_date": "2025-08-01", "card_image": "https://api.scryfall.com/cards/eoc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Edge of Eternities Commander (EOC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $54.34 \u2014 Released: 2025-08-01", "commander_status": "Legal", "alt_commander": "Kilo, Apogee Mind"}, {"name": "Counterpunch", "commander": "Ghave, Guru of Spores", "set_code": "CMD", "set_name": "Commander 2011", "colors": ["B", "G", "W"], "status": "Testing", "rating": 4.25, "price": 85.03, "release_date": "2011-06-17", "card_image": "https://api.scryfall.com/cards/cmd/200?format=image&version=normal", "notes": "STATUS: TESTING \u2014 Set: Commander 2011 (CMD) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $85.03 \u2014 Released: 2011-06-17", "commander_status": "Legal", "alt_commander": "Karador, Ghost Chieftain / Vish Kal, Blood Arbiter / Teneb"}, {"name": "Coven Counters", "commander": "Leinore, Autumn Sovereign", "set_code": "MID", "set_name": "Innistrad: Midnight Hunt", "colors": ["G", "W"], "status": "Legal", "rating": 5.25, "price": 40.48, "release_date": "2021-09-24", "card_image": "https://api.scryfall.com/cards/mic/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Innistrad: Midnight Hunt (MID) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $40.48 \u2014 Released: 2021-09-24", "commander_status": "Legal", "alt_commander": "Kyler, Sigardian Emissary"}, {"name": "Creative Energy", "commander": "Satya, Aetherflux Genius", "set_code": "M3C", "set_name": "Modern Horizons 3 Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 5.25, "price": 60.64, "release_date": "2024-06-14", "card_image": "https://api.scryfall.com/cards/m3c/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Modern Horizons 3 Commander (M3C) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $60.64 \u2014 Released: 2024-06-14", "commander_status": "Legal", "alt_commander": "Cayth, Famed Mechanist"}, {"name": "Dance of the Elements", "commander": "Ashling, the Limitless", "set_code": "ECC", "set_name": "Lorwyn Eclipsed Commander", "colors": ["B", "G", "R", "U", "W"], "status": "Legal", "rating": 4.25, "price": 53.75, "release_date": "2026-01-23", "card_image": "https://api.scryfall.com/cards/ecc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Lorwyn Eclipsed Commander (ECC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $53.75 \u2014 Released: 2026-01-23", "commander_status": "Legal", "alt_commander": "Mass of Mysteries"}, {"name": "Deadly Disguise", "commander": "Kaust, Eyes of the Glade", "set_code": "MKC", "set_name": "Murders at Karlov Manor Commander", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.25, "price": 111.11, "release_date": "2024-02-09", "card_image": "https://api.scryfall.com/cards/mkc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Murders at Karlov Manor Commander (MKC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $111.11 \u2014 Released: 2024-02-09", "commander_status": "Legal", "alt_commander": "Duskana, the Rage Mother"}, {"name": "Death Toll", "commander": "Winter, Cynical Opportunist", "set_code": "DSC", "set_name": "Duskmourn: House of Horror Commander", "colors": ["B", "G"], "status": "Legal", "rating": 4.5, "price": 68.07, "release_date": "2024-09-27", "card_image": "https://api.scryfall.com/cards/dsc/7?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Duskmourn: House of Horror Commander (DSC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $68.07 \u2014 Released: 2024-09-27", "commander_status": "Legal", "alt_commander": "Rendmaw, Creaking Nest"}, {"name": "Deep Clue Sea", "commander": "Morska, Undersea Sleuth", "set_code": "MKC", "set_name": "Murders at Karlov Manor Commander", "colors": ["G", "U", "W"], "status": "Legal", "rating": 4.5, "price": 92.72, "release_date": "2024-02-09", "card_image": "https://api.scryfall.com/cards/mkc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Murders at Karlov Manor Commander (MKC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $92.72 \u2014 Released: 2024-02-09", "commander_status": "Legal", "alt_commander": "Sophia, Dogged Detective"}, {"name": "Desert Bloom", "commander": "Yuma, Proud Protector", "set_code": "OTC", "set_name": "Outlaws of Thunder Junction Commander", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.25, "price": 73.27, "release_date": "2024-04-19", "card_image": "https://api.scryfall.com/cards/otc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Outlaws of Thunder Junction Commander (OTC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $73.27 \u2014 Released: 2024-04-19", "commander_status": "Legal", "alt_commander": "Kirri, Talon of Caelum"}, {"name": "Devour for Power", "commander": "The Mimeoplasm", "set_code": "CMD", "set_name": "Commander 2011", "colors": ["B", "G", "U"], "status": "Legal", "rating": 4.25, "price": 96.95, "release_date": "2011-06-17", "card_image": "https://api.scryfall.com/cards/cmd/210?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2011 (CMD) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $96.95 \u2014 Released: 2011-06-17", "commander_status": "Legal", "alt_commander": "Damia, Sage of Stone / Vorosh, the Hunter"}, {"name": "Divine Convocation", "commander": "Kasla, the Broken Halo", "set_code": "MOC", "set_name": "March of the Machine Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.5, "price": 67.52, "release_date": "2023-04-21", "card_image": "https://api.scryfall.com/cards/moc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: March of the Machine Commander (MOC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $67.52 \u2014 Released: 2023-04-21", "commander_status": "Legal", "alt_commander": "Saint Traft and Rem Karolus / Kykar, Wind's Fury"}, {"name": "Doom Prevails", "commander": "Doctor Doom, King of Latveria", "set_code": "MSC", "set_name": "Marvel Super Heroes Commander", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.5, "price": 91.66, "release_date": "2026-06-26", "card_image": "https://api.scryfall.com/cards/msc/880?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Marvel Super Heroes Commander (MSC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $91.66 \u2014 Released: 2026-06-26", "commander_status": "Legal", "alt_commander": "Doctor Doom / Magneto"}, {"name": "Draconic Destruction", "commander": "Atarka, World Render", "set_code": "SCD", "set_name": "Starter Commander Decks", "colors": ["G", "R"], "status": "Legal", "rating": 4.25, "price": 32.87, "release_date": "2022-12-02", "card_image": "https://api.scryfall.com/cards/scd/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Starter Commander Decks (SCD) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $32.87 \u2014 Released: 2022-12-02", "commander_status": "Legal", "alt_commander": "Lathliss, Dragon Queen"}, {"name": "Draconic Dissent", "commander": "Firkraag, Cunning Instigator", "set_code": "CLB", "set_name": "Commander Legends: Battle for Baldur's Gate", "colors": ["R", "U"], "status": "Legal", "rating": 4.75, "price": 127.16, "release_date": "2022-06-10", "card_image": "https://api.scryfall.com/cards/clb/648?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Legends: Battle for Baldur's Gate (CLB) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $127.16 \u2014 Released: 2022-06-10", "commander_status": "Legal", "alt_commander": "Baeloth Barrityl, Entertainer + Clan Crafter"}, {"name": "Draconic Domination", "commander": "The Ur-Dragon", "set_code": "C17", "set_name": "Commander 2017", "colors": ["B", "G", "R", "U", "W"], "status": "Banned", "rating": 4.0, "price": 130.91, "release_date": "2017-08-25", "card_image": "https://api.scryfall.com/cards/c17/48?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2017 (C17) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $130.91 \u2014 Released: 2017-08-25 \u2014 STATUS: BANNED (Deck is fully banned regardless of Commander)", "commander_status": "Banned", "alt_commander": "Scion of the Ur-Dragon / Ramos, Dragon Engine / O-Kagachi"}, {"name": "Draconic Rage", "commander": "Vrondiss, Rage of Ancients", "set_code": "AFR", "set_name": "Adventures in the Forgotten Realms", "colors": ["G", "R"], "status": "Legal", "rating": 4.5, "price": 91.3, "release_date": "2021-07-23", "card_image": "https://api.scryfall.com/cards/afc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Adventures in the Forgotten Realms (AFR) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $91.30 \u2014 Released: 2021-07-23", "commander_status": "Legal", "alt_commander": "Klauth, Unrivaled Ancient"}, {"name": "Dungeons of Death", "commander": "Sefris of the Hidden Ways", "set_code": "AFR", "set_name": "Adventures in the Forgotten Realms", "colors": ["B", "U", "W"], "status": "Legal", "rating": 4.25, "price": 82.7, "release_date": "2021-07-23", "card_image": "https://api.scryfall.com/cards/afc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Adventures in the Forgotten Realms (AFR) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $82.70 \u2014 Released: 2021-07-23", "commander_status": "Legal", "alt_commander": "Nihiloor"}, {"name": "Eldrazi Incursion", "commander": "Ulalek, Fused Atrocity", "set_code": "M3C", "set_name": "Modern Horizons 3 Commander", "colors": ["B", "G", "R", "U", "W"], "status": "Banned", "rating": 5.0, "price": 115.39, "release_date": "2024-06-14", "card_image": "https://api.scryfall.com/cards/m3c/4?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Modern Horizons 3 Commander (M3C) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $115.39 \u2014 Released: 2024-06-14", "commander_status": "Banned", "alt_commander": "Azlask, the Swelling Scourge"}, {"name": "Eldrazi Unbound", "commander": "Zhulodok, Void Gorger", "set_code": "CMM", "set_name": "Commander Masters", "colors": [], "status": "Banned", "rating": 5.0, "price": 216.72, "release_date": "2023-08-04", "card_image": "https://api.scryfall.com/cards/cmm/704?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander Masters (CMM) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $216.72 \u2014 Released: 2023-08-04", "commander_status": "Banned", "alt_commander": "Omarthis, Ghostfire Initiate"}, {"name": "Elven Council", "commander": "Galadriel, Elven-Queen", "set_code": "LTC", "set_name": "Tales of Middle-earth Commander", "colors": ["G", "U"], "status": "Legal", "rating": 4.75, "price": 75.58, "release_date": "2023-06-23", "card_image": "https://api.scryfall.com/cards/ltc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tales of Middle-earth Commander (LTC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $75.58 \u2014 Released: 2023-06-23", "commander_status": "Legal", "alt_commander": "Radagast, Wizard of Wilds / C\u00edrdan the Shipwright"}, {"name": "Elven Empire", "commander": "Lathril, Blade of the Elves", "set_code": "KHM", "set_name": "Kaldheim", "colors": ["B", "G"], "status": "Legal", "rating": 4.25, "price": 78.64, "release_date": "2021-02-05", "card_image": "https://api.scryfall.com/cards/khc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Kaldheim (KHM) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $78.64 \u2014 Released: 2021-02-05 \u2014 NOTE: Deck is LEGAL with an alternate commander; Lathril, Blade of the Elves is BANNED in the command zone.", "commander_status": "Banned", "alt_commander": "Harald, King of Skemfar / Miara + Numa / Abomination of Llanowar"}, {"name": "Endless Punishment", "commander": "Valgavoth, Harrower of Souls", "set_code": "DSC", "set_name": "Duskmourn: House of Horror Commander", "colors": ["B", "R"], "status": "Legal", "rating": 4.25, "price": 140.38, "release_date": "2024-09-27", "card_image": "https://api.scryfall.com/cards/dsc/6?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Duskmourn: House of Horror Commander (DSC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $140.38 \u2014 Released: 2024-09-27", "commander_status": "Legal", "alt_commander": "The Lord of Pain"}, {"name": "Enduring Enchantments", "commander": "Anikthea, Hand of Erebos", "set_code": "CMM", "set_name": "Commander Masters", "colors": ["B", "G", "W"], "status": "Legal", "rating": 4.0, "price": 126.27, "release_date": "2023-08-04", "card_image": "https://api.scryfall.com/cards/cmm/705?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Masters (CMM) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $126.27 \u2014 Released: 2023-08-04", "commander_status": "Legal", "alt_commander": "Narci, Fable Singer"}, {"name": "Enhanced Evolution", "commander": "Otrimi, the Ever-Playful", "set_code": "C20", "set_name": "Commander 2020", "colors": ["B", "G", "U"], "status": "Legal", "rating": 4.75, "price": 87.99, "release_date": "2020-04-17", "card_image": "https://api.scryfall.com/cards/c20/12?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2020 (C20) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $87.99 \u2014 Released: 2020-04-17", "commander_status": "Legal", "alt_commander": "Zaxara, the Exemplary / Cazur + Ukkima"}, {"name": "Entropic Uprising", "commander": "Yidris, Maelstrom Wielder", "set_code": "C16", "set_name": "Commander 2016", "colors": ["B", "G", "R", "U"], "status": "Legal", "rating": 4.25, "price": 135.04, "release_date": "2016-11-11", "card_image": "https://api.scryfall.com/cards/c16/50?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2016 (C16) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $135.04 \u2014 Released: 2016-11-11", "commander_status": "Legal", "alt_commander": "Kydele, Chosen of Kruphix + Vial Smasher / Thrasios"}, {"name": "Eternal Bargain", "commander": "Oloro, Ageless Ascetic", "set_code": "C13", "set_name": "Commander 2013", "colors": ["B", "U", "W"], "status": "Banned", "rating": 4.25, "price": 68.66, "release_date": "2013-11-01", "card_image": "https://api.scryfall.com/cards/c13/203?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2013 (C13) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $68.66 \u2014 Released: 2013-11-01", "commander_status": "Banned", "alt_commander": "Sydri, Galvanic Genius / Sharuum the Hegemon"}, {"name": "Eternal Might", "commander": "Temmet, Naktamun's Will", "set_code": "DRC", "set_name": "Aetherdrift Commander", "colors": ["B", "U", "W"], "status": "Legal", "rating": 4.25, "price": 44.28, "release_date": "2025-02-14", "card_image": "https://api.scryfall.com/cards/drc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Aetherdrift Commander (DRC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $44.28 \u2014 Released: 2025-02-14", "commander_status": "Legal", "alt_commander": "Hashaton, Scarab's Fist"}, {"name": "Evasive Maneuvers", "commander": "Derevi, Empyrial Tactician", "set_code": "C13", "set_name": "Commander 2013", "colors": ["G", "U", "W"], "status": "Legal", "rating": 4.75, "price": 61.48, "release_date": "2013-11-01", "card_image": "https://api.scryfall.com/cards/c13/186?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2013 (C13) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $61.48 \u2014 Released: 2013-11-01", "commander_status": "Legal", "alt_commander": "Roon of the Hidden Realm / Rubinia Soulsinger"}, {"name": "Everyone's Invited", "commander": "Morophon, the Boundless", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["B", "G", "R", "U", "W"], "status": "Legal", "rating": 4.75, "price": 179.82, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/1896?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $179.82 \u2014 Released: 2019-12-02", "commander_status": "Legal", "alt_commander": "-"}, {"name": "Exit from Exile", "commander": "Faldorn, Dread Wolf Herald", "set_code": "CLB", "set_name": "Commander Legends: Battle for Baldur's Gate", "colors": ["G", "R"], "status": "Legal", "rating": 4.5, "price": 129.59, "release_date": "2022-06-10", "card_image": "https://api.scryfall.com/cards/clb/647?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Legends: Battle for Baldur's Gate (CLB) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $129.59 \u2014 Released: 2022-06-10", "commander_status": "Legal", "alt_commander": "Durnan of the Yawning Portal + Passionate Archaeologist"}, {"name": "Explorers of the Deep", "commander": "Hakbal of the Surging Soul", "set_code": "LCC", "set_name": "The Lost Caverns of Ixalan Commander", "colors": ["G", "U"], "status": "Legal", "rating": 4.75, "price": 61.28, "release_date": "2023-11-17", "card_image": "https://api.scryfall.com/cards/lcc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: The Lost Caverns of Ixalan Commander (LCC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $61.28 \u2014 Released: 2023-11-17", "commander_status": "Legal", "alt_commander": "Xolatoyac, the Smiling Flood / Kumena, Tyrant of Orazca"}, {"name": "Exquisite Invention", "commander": "Saheeli, the Gifted", "set_code": "C18", "set_name": "Commander 2018", "colors": ["R", "U"], "status": "Legal", "rating": 4.25, "price": 59.81, "release_date": "2018-08-10", "card_image": "https://api.scryfall.com/cards/c18/44?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2018 (C18) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $59.81 \u2014 Released: 2018-08-10", "commander_status": "Legal", "alt_commander": "Brudiclad, Telchor Engineer / Tawnos, Urza's Apprentice"}, {"name": "Faceless Menace", "commander": "Kadena, Slinking Sorcerer", "set_code": "C19", "set_name": "Commander 2019", "colors": ["B", "G", "U"], "status": "Legal", "rating": 4.75, "price": 75.88, "release_date": "2019-08-23", "card_image": "https://api.scryfall.com/cards/c19/45?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2019 (C19) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $75.88 \u2014 Released: 2019-08-23", "commander_status": "Legal", "alt_commander": "Rayami, First of the Fallen / Volrath, the Shapestealer"}, {"name": "Fae Dominion", "commander": "Tegwyll, Duke of Splendor", "set_code": "WOC", "set_name": "Wilds of Eldraine Commander", "colors": ["B", "U"], "status": "Legal", "rating": 5.25, "price": 137.43, "release_date": "2023-09-08", "card_image": "https://api.scryfall.com/cards/woc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Wilds of Eldraine Commander (WOC) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $137.43 \u2014 Released: 2023-09-08", "commander_status": "Legal", "alt_commander": "Alela, Cunning Conqueror / Tegwyll, Duke of Splendors"}, {"name": "Family Matters", "commander": "Zinnia, Valley's Voice", "set_code": "BLC", "set_name": "Bloomburrow Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.75, "price": 50.71, "release_date": "2024-08-02", "card_image": "https://api.scryfall.com/cards/blc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Bloomburrow Commander (BLC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $50.71 \u2014 Released: 2024-08-02", "commander_status": "Legal", "alt_commander": "Arthur, Marigold Knight"}, {"name": "Feline Ferocity", "commander": "Arahbo, Roar of the World", "set_code": "C17", "set_name": "Commander 2017", "colors": ["G", "W"], "status": "Legal", "rating": 5.25, "price": 125.2, "release_date": "2017-08-25", "card_image": "https://api.scryfall.com/cards/c17/35?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2017 (C17) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $125.20 \u2014 Released: 2017-08-25", "commander_status": "Legal", "alt_commander": "Nazahn, Revered Bladesmith / Mirri, Weatherlight Duelist"}, {"name": "First Flight", "commander": "Isperia, Supreme Judge", "set_code": "SCD", "set_name": "Starter Commander Decks", "colors": ["U", "W"], "status": "Legal", "rating": 5.0, "price": 28.66, "release_date": "2022-12-02", "card_image": "https://api.scryfall.com/cards/scd/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Starter Commander Decks (SCD) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $28.66 \u2014 Released: 2022-12-02", "commander_status": "Legal", "alt_commander": "Kangee, Sky Warden"}, {"name": "Food and Fellowship", "commander": "Frodo, Adventurous Hobbit", "set_code": "LTC", "set_name": "Tales of Middle-earth Commander", "colors": ["B", "G", "W"], "status": "Legal", "rating": 4.75, "price": 66.56, "release_date": "2023-06-23", "card_image": "https://api.scryfall.com/cards/ltc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tales of Middle-earth Commander (LTC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $66.56 \u2014 Released: 2023-06-23", "commander_status": "Legal", "alt_commander": "Merry, Warden of Isengard + Pippin, Guard of the Citadel"}, {"name": "Forces of the Imperium", "commander": "Inquisitor Greyfax", "set_code": "40K", "set_name": "Warhammer 40,000 Commander", "colors": ["B", "U", "W"], "status": "Legal", "rating": 5.5, "price": 210.39, "release_date": "2022-10-07", "card_image": "https://api.scryfall.com/cards/40k/173?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Warhammer 40,000 Commander (40K) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $210.39 \u2014 Released: 2022-10-07", "commander_status": "Legal", "alt_commander": "Marneus Calgar / Inquisitor Greyfax"}, {"name": "Forged in Stone", "commander": "Nahiri, the Lithomancer", "set_code": "C14", "set_name": "Commander 2014", "colors": ["W"], "status": "Legal", "rating": 5.25, "price": 83.17, "release_date": "2014-11-07", "card_image": "https://api.scryfall.com/cards/c14/10?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2014 (C14) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $83.17 \u2014 Released: 2014-11-07", "commander_status": "Legal", "alt_commander": "Jazal Goldmane / Nahiri, the Lithomancer / Kemba, Kha Regent"}, {"name": "From Cute to Brute", "commander": "Esika, God of the Tree // The Prismatic Bridge", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["B", "G", "R", "U", "W"], "status": "Legal", "rating": 5.25, "price": 234.65, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/1155?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $234.65 \u2014 Released: 2019-12-02", "commander_status": "Legal", "alt_commander": "-"}, {"name": "Goblin Storm", "commander": "Zada, Hedron Grinder", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["R"], "status": "Banned", "rating": 4.75, "price": 221.73, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/2406?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Added to banlist \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $221.73 \u2014 Released: 2019-12-02", "commander_status": "Banned", "alt_commander": "-"}, {"name": "Grand Larceny", "commander": "Gonti, Canny Acquisitor", "set_code": "OTC", "set_name": "Outlaws of Thunder Junction Commander", "colors": ["B", "G", "U"], "status": "Legal", "rating": 5.0, "price": 110.82, "release_date": "2024-04-19", "card_image": "https://api.scryfall.com/cards/otc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Outlaws of Thunder Junction Commander (OTC) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $110.82 \u2014 Released: 2024-04-19", "commander_status": "Legal", "alt_commander": "Felix Five-Boots"}, {"name": "Grave Danger", "commander": "Gisa and Geralf", "set_code": "SCD", "set_name": "Starter Commander Decks", "colors": ["B", "U"], "status": "Legal", "rating": 4.5, "price": 25.21, "release_date": "2022-12-02", "card_image": "https://api.scryfall.com/cards/scd/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Starter Commander Decks (SCD) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $25.21 \u2014 Released: 2022-12-02", "commander_status": "Legal", "alt_commander": "Grimgrin, Corpse-Born"}, {"name": "Graveyard Overdrive", "commander": "Disa the Restless", "set_code": "M3C", "set_name": "Modern Horizons 3 Commander", "colors": ["B", "G", "R"], "status": "Legal", "rating": 4.25, "price": 82.39, "release_date": "2024-06-14", "card_image": "https://api.scryfall.com/cards/m3c/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Modern Horizons 3 Commander (M3C) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $82.39 \u2014 Released: 2024-06-14", "commander_status": "Legal", "alt_commander": "Coram, the Undertaker"}, {"name": "Growing Threat", "commander": "Brimaz, Blight of Oreskos", "set_code": "MOC", "set_name": "March of the Machine Commander", "colors": ["B", "W"], "status": "Legal", "rating": 4.25, "price": 55.87, "release_date": "2023-04-21", "card_image": "https://api.scryfall.com/cards/moc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: March of the Machine Commander (MOC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $55.87 \u2014 Released: 2023-04-21", "commander_status": "Legal", "alt_commander": "Moira and Teshar / Vona, Butcher of Magan"}, {"name": "Guided by Nature", "commander": "Freyalise, Llanowar's Fury", "set_code": "C14", "set_name": "Commander 2014", "colors": ["G"], "status": "Banned", "rating": 4.25, "price": 107.69, "release_date": "2014-11-07", "card_image": "https://api.scryfall.com/cards/c14/43?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2014 (C14) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $107.69 \u2014 Released: 2014-11-07", "commander_status": "Banned", "alt_commander": "Titania, Protector of Argoth / Freyalise"}, {"name": "Hail, Caesar", "commander": "Caesar, Legion's Emperor", "set_code": "PIP", "set_name": "Fallout", "colors": ["B", "R", "W"], "status": "Legal", "rating": 4.25, "price": 72.37, "release_date": "2024-03-08", "card_image": "https://api.scryfall.com/cards/pip/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Fallout (PIP) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $72.37 \u2014 Released: 2024-03-08", "commander_status": "Legal", "alt_commander": "Mr. House, President and CEO / Colonel Autumn"}, {"name": "Hatsune Miku", "commander": "Trostani, Selesnya's Voice", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["G", "W"], "status": "Legal", "rating": 4.38, "price": 230.32, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/2429?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 4.38 \u2014 Est. Price: $230.32 \u2014 Released: 2019-12-02", "commander_status": "Legal", "alt_commander": "-"}, {"name": "Heads I Win, Tails You Lose", "commander": "Zndrsplt, Eye of Wisdom", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["R", "U"], "status": "Legal", "rating": 6.25, "price": 267.88, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/379?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 6.25 \u2014 Est. Price: $267.88 \u2014 Released: 2019-12-02", "commander_status": "Legal", "alt_commander": "Zndrsplt, Eye of Wisdom + Okaun, Eye of Chaos"}, {"name": "Heavenly Inferno", "commander": "Kaalia of the Vast", "set_code": "CMD", "set_name": "Commander 2011", "colors": ["B", "R", "W"], "status": "Banned", "rating": 4.0, "price": 71.87, "release_date": "2011-06-17", "card_image": "https://api.scryfall.com/cards/cmd/206?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2011 (CMD) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $71.87 \u2014 Released: 2011-06-17", "commander_status": "Banned", "alt_commander": "Tariel, Reckoner of Souls / Oros, the Avenger"}, {"name": "Hosts of Mordor", "commander": "Sauron, Lord of the Rings", "set_code": "LTC", "set_name": "Tales of Middle-earth Commander", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.5, "price": 81.89, "release_date": "2023-06-23", "card_image": "https://api.scryfall.com/cards/ltc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tales of Middle-earth Commander (LTC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $81.89 \u2014 Released: 2023-06-23", "commander_status": "Legal", "alt_commander": "Saruman, the White Hand / Witch-king of Angmar"}, {"name": "Invent Superiority", "commander": "Breya, Etherium Shaper", "set_code": "C16", "set_name": "Commander 2016", "colors": ["B", "R", "U", "W"], "status": "Legal", "rating": 4.5, "price": 62.7, "release_date": "2016-11-11", "card_image": "https://api.scryfall.com/cards/c16/29?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2016 (C16) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $62.70 \u2014 Released: 2016-11-11", "commander_status": "Legal", "alt_commander": "Silas Renn, Seeker Adept + Akiri, Line-Slinger / Breya, Etherium Shaper"}, {"name": "Jeskai Striker", "commander": "Shiko and Narset, Unified", "set_code": "TDC", "set_name": "Tarkir: Dragonstorm Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.75, "price": 49.06, "release_date": "2025-04-11", "card_image": "https://api.scryfall.com/cards/tdc/7?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tarkir: Dragonstorm Commander (TDC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $49.06 \u2014 Released: 2025-04-11", "commander_status": "Legal", "alt_commander": "Elsha, Threefold Master"}, {"name": "Jump Scare!", "commander": "Zimone, Mystery Unraveler", "set_code": "DSC", "set_name": "Duskmourn: House of Horror Commander", "colors": ["G", "U"], "status": "Legal", "rating": 4.5, "price": 82.83, "release_date": "2024-09-27", "card_image": "https://api.scryfall.com/cards/dsc/8?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Duskmourn: House of Horror Commander (DSC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $82.83 \u2014 Released: 2024-09-27", "commander_status": "Legal", "alt_commander": "Kianne, Corrupted Memory"}, {"name": "Lands Wrath", "commander": "Obuun, Mul Daya Ancestor", "set_code": "ZNC", "set_name": "Zendikar Rising Commander", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.25, "price": 31.36, "release_date": "2020-09-25", "card_image": "https://api.scryfall.com/cards/znc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Zendikar Rising Commander (ZNC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $31.36 \u2014 Released: 2020-09-25", "commander_status": "Legal", "alt_commander": "Trostrani Discordant / Mina and Denn, Wildborn"}, {"name": "Legends Legacy", "commander": "Dihada, Binder of Wills", "set_code": "DMC", "set_name": "Dominaria United Commander", "colors": ["B", "R", "W"], "status": "Legal", "rating": 4.5, "price": 126.93, "release_date": "2022-09-09", "card_image": "https://api.scryfall.com/cards/dmc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Dominaria United Commander (DMC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $126.93 \u2014 Released: 2022-09-09", "commander_status": "Legal", "alt_commander": "Shanid, Sleepers' Scourge / Dihada, Binder of Wills"}, {"name": "Limit Break", "commander": "Cloud, Ex-SOLDIER", "set_code": "FIC", "set_name": "Final Fantasy Commander", "colors": ["G", "R", "W"], "status": "Legal", "rating": 5.5, "price": 60.15, "release_date": "2025-06-13", "card_image": "https://api.scryfall.com/cards/fic/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Final Fantasy Commander (FIC) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $60.15 \u2014 Released: 2025-06-13", "commander_status": "Legal", "alt_commander": "Tifa, Martial Artist"}, {"name": "Living Energy", "commander": "Saheeli, Radiant Creator", "set_code": "DRC", "set_name": "Aetherdrift Commander", "colors": ["G", "R", "U"], "status": "Legal", "rating": 4.75, "price": 49.03, "release_date": "2025-02-14", "card_image": "https://api.scryfall.com/cards/drc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Aetherdrift Commander (DRC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $49.03 \u2014 Released: 2025-02-14", "commander_status": "Legal", "alt_commander": "Pia Nalaar, Chief Mechanic"}, {"name": "Lorehold Legacies", "commander": "Osgir, the Reconstructor", "set_code": "C21", "set_name": "Commander 2021", "colors": ["R", "W"], "status": "Legal", "rating": 4.0, "price": 57.79, "release_date": "2021-04-23", "card_image": "https://api.scryfall.com/cards/c21/8?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2021 (C21) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $57.79 \u2014 Released: 2021-04-23", "commander_status": "Legal", "alt_commander": "Alibou, Ancient Witness"}, {"name": "Lorehold Spirit", "commander": "Quintorius, History Chaser", "set_code": "SOC", "set_name": "Secrets of Strixhaven Commander", "colors": ["R", "W"], "status": "Legal", "rating": 4.25, "price": 58.44, "release_date": "2026-04-24", "card_image": "https://api.scryfall.com/cards/soc/7?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secrets of Strixhaven Commander (SOC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $58.44 \u2014 Released: 2026-04-24", "commander_status": "Legal", "alt_commander": "Plargg, Dean of Chaos / Augusta"}, {"name": "Maestros Massacre", "commander": "Anhelo, the Painter", "set_code": "SNC", "set_name": "Streets of New Capenna", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.5, "price": 67.67, "release_date": "2022-04-29", "card_image": "https://api.scryfall.com/cards/ncc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Streets of New Capenna (SNC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $67.67 \u2014 Released: 2022-04-29", "commander_status": "Legal", "alt_commander": "Cormela, Glamour Thief / Parnesse, the Subtle Brush"}, {"name": "Mardu Surge", "commander": "Zurgo Stormrender", "set_code": "TDC", "set_name": "Tarkir: Dragonstorm Commander", "colors": ["B", "R", "W"], "status": "Legal", "rating": 5.25, "price": 60.25, "release_date": "2025-04-11", "card_image": "https://api.scryfall.com/cards/tdc/10?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tarkir: Dragonstorm Commander (TDC) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $60.25 \u2014 Released: 2025-04-11", "commander_status": "Legal", "alt_commander": "Neriv, Crackling Vanguard"}, {"name": "Masters of Evil", "commander": "Davros, Dalek Creator", "set_code": "WHO", "set_name": "Doctor Who", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.75, "price": 140.5, "release_date": "2023-10-13", "card_image": "https://api.scryfall.com/cards/who/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Doctor Who (WHO) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $140.50 \u2014 Released: 2023-10-13", "commander_status": "Legal", "alt_commander": "The Master, Multiplied / Missy / Ashad, the Lone Cyberman"}, {"name": "Merciless Rage", "commander": "Anje Falkenrath", "set_code": "C19", "set_name": "Commander 2019", "colors": ["B", "R"], "status": "Legal", "rating": 4.25, "price": 68.77, "release_date": "2019-08-23", "card_image": "https://api.scryfall.com/cards/c19/37?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2019 (C19) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $68.77 \u2014 Released: 2019-08-23", "commander_status": "Legal", "alt_commander": "Chainer, Nightmare Adept / Greven, Predator Captain"}, {"name": "Mind Flayarrrs", "commander": "Captain N'ghathrod", "set_code": "CLB", "set_name": "Commander Legends: Battle for Baldur's Gate", "colors": ["B", "U"], "status": "Legal", "rating": 4.5, "price": 138.29, "release_date": "2022-06-10", "card_image": "https://api.scryfall.com/cards/clb/646?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Legends: Battle for Baldur's Gate (CLB) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $138.29 \u2014 Released: 2022-06-10", "commander_status": "Legal", "alt_commander": "Zellix, Sanity Flayer + Haunted One"}, {"name": "Mind Seize", "commander": "Jeleva, Nephalia's Scourge", "set_code": "C13", "set_name": "Commander 2013", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.75, "price": 60.13, "release_date": "2013-11-01", "card_image": "https://api.scryfall.com/cards/c13/194?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2013 (C13) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $60.13 \u2014 Released: 2013-11-01", "commander_status": "Legal", "alt_commander": "Nekusar, the Mindrazer / Thraximundar"}, {"name": "Miracle Worker", "commander": "Aminatou, Veil Piercer", "set_code": "DSC", "set_name": "Duskmourn: House of Horror Commander", "colors": ["B", "U", "W"], "status": "Legal", "rating": 4.5, "price": 93.44, "release_date": "2024-09-27", "card_image": "https://api.scryfall.com/cards/dsc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Duskmourn: House of Horror Commander (DSC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $93.44 \u2014 Released: 2024-09-27", "commander_status": "Legal", "alt_commander": "The Master of Keys"}, {"name": "Mirror Mastery", "commander": "Riku of Two Reflections", "set_code": "CMD", "set_name": "Commander 2011", "colors": ["G", "R", "U"], "status": "Legal", "rating": 4.5, "price": 88.77, "release_date": "2011-06-17", "card_image": "https://api.scryfall.com/cards/cmd/220?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2011 (CMD) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $88.77 \u2014 Released: 2011-06-17", "commander_status": "Legal", "alt_commander": "Animar, Soul of Elements / Intet, the Dreamer"}, {"name": "Mishras Burnished Banner", "commander": "Mishra, Eminent One", "set_code": "BRC", "set_name": "The Brothers' War Commander", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.75, "price": 81.92, "release_date": "2022-11-18", "card_image": "https://api.scryfall.com/cards/brc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: The Brothers' War Commander (BRC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $81.92 \u2014 Released: 2022-11-18", "commander_status": "Legal", "alt_commander": "Ashnod, Flesh Mechanist / Brudiclad, Telchor Engineer"}, {"name": "Most Wanted", "commander": "Olivia, Opulent Outlaw", "set_code": "OTC", "set_name": "Outlaws of Thunder Junction Commander", "colors": ["B", "R", "W"], "status": "Legal", "rating": 5.25, "price": 105.17, "release_date": "2024-04-19", "card_image": "https://api.scryfall.com/cards/otc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Outlaws of Thunder Junction Commander (OTC) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $105.17 \u2014 Released: 2024-04-19", "commander_status": "Legal", "alt_commander": "Vihaan, Goldwaker"}, {"name": "Mutant Menace", "commander": "The Wise Mothman", "set_code": "PIP", "set_name": "Fallout", "colors": ["B", "G", "U"], "status": "Legal", "rating": 4.75, "price": 122.25, "release_date": "2024-03-08", "card_image": "https://api.scryfall.com/cards/pip/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Fallout (PIP) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $122.25 \u2014 Released: 2024-03-08", "commander_status": "Legal", "alt_commander": "The Wise Mothman / Agent Frank Horrigan"}, {"name": "Mystic Intellect", "commander": "Sevinne, the Chronoclasm", "set_code": "C19", "set_name": "Commander 2019", "colors": ["R", "U", "W"], "status": "Legal", "rating": 5.5, "price": 49.91, "release_date": "2019-08-23", "card_image": "https://api.scryfall.com/cards/c19/49?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2019 (C19) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $49.91 \u2014 Released: 2019-08-23", "commander_status": "Legal", "alt_commander": "Elsha of the Infinite / Pramikon, Sky Rampart"}, {"name": "Nature of the Beast", "commander": "Marath, Will of the Wild", "set_code": "C13", "set_name": "Commander 2013", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.5, "price": 55.63, "release_date": "2013-11-01", "card_image": "https://api.scryfall.com/cards/c13/198?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2013 (C13) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $55.63 \u2014 Released: 2013-11-01", "commander_status": "Legal", "alt_commander": "Gahiji, Honored One / Mayael the Anima"}, {"name": "Natures Vengeance", "commander": "Lord Windgrace", "set_code": "C18", "set_name": "Commander 2018", "colors": ["B", "G", "R"], "status": "Legal", "rating": 4.0, "price": 42.01, "release_date": "2018-08-10", "card_image": "https://api.scryfall.com/cards/c18/43?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2018 (C18) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $42.01 \u2014 Released: 2018-08-10", "commander_status": "Legal", "alt_commander": "Gyrus, Waker of Corpses / Thantis, the Warweaver"}, {"name": "Necron Dynasties", "commander": "Szarekh, the Silent King", "set_code": "40K", "set_name": "Warhammer 40,000 Commander", "colors": ["B"], "status": "Banned", "rating": 4.25, "price": 240.75, "release_date": "2022-10-07", "card_image": "https://api.scryfall.com/cards/40k/170?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Warhammer 40,000 Commander (40K) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $240.75 \u2014 Released: 2022-10-07", "commander_status": "Banned", "alt_commander": "Imotekh the Stormlord / Anrakyr the Traveller"}, {"name": "Obscura Operation", "commander": "Kamiz, Obscura Oculus", "set_code": "SNC", "set_name": "Streets of New Capenna", "colors": ["B", "U", "W"], "status": "Legal", "rating": 5.0, "price": 87.05, "release_date": "2022-04-29", "card_image": "https://api.scryfall.com/cards/ncc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Streets of New Capenna (SNC) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $87.05 \u2014 Released: 2022-04-29", "commander_status": "Legal", "alt_commander": "Tivit, Seller of Secrets / Kamiz, Obscura Oculus"}, {"name": "Open Hostility", "commander": "Saskia the Unyielding", "set_code": "C16", "set_name": "Commander 2016", "colors": ["B", "G", "R", "W"], "status": "Banned", "rating": 5.0, "price": 110.69, "release_date": "2016-11-11", "card_image": "https://api.scryfall.com/cards/c16/41?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2016 (C16) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $110.69 \u2014 Released: 2016-11-11", "commander_status": "Banned", "alt_commander": "Tymna the Weaver + Tana, the Bloodsower / Ravos + Tana"}, {"name": "Painbow", "commander": "Jared Carthalion", "set_code": "DMC", "set_name": "Dominaria United Commander", "colors": ["B", "G", "R", "U", "W"], "status": "Legal", "rating": 4.5, "price": 80.33, "release_date": "2022-09-09", "card_image": "https://api.scryfall.com/cards/dmc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Dominaria United Commander (DMC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $80.33 \u2014 Released: 2022-09-09", "commander_status": "Legal", "alt_commander": "Jenson Carthalion, Druid Exile / Jared Carthalion"}, {"name": "Paradox Power", "commander": "The Thirteenth Doctor", "set_code": "WHO", "set_name": "Doctor Who", "colors": ["G", "R", "U"], "status": "Legal", "rating": 5.0, "price": 73.26, "release_date": "2023-10-13", "card_image": "https://api.scryfall.com/cards/who/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Doctor Who (WHO) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $73.26 \u2014 Released: 2023-10-13", "commander_status": "Legal", "alt_commander": "The Twelfth Doctor + Yasmin Khan / The Eleventh Doctor"}, {"name": "Party Time", "commander": "Nalia de'Arnise", "set_code": "CLB", "set_name": "Commander Legends: Battle for Baldur's Gate", "colors": ["B", "W"], "status": "Legal", "rating": 5.75, "price": 91.34, "release_date": "2022-06-10", "card_image": "https://api.scryfall.com/cards/clb/649?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Legends: Battle for Baldur's Gate (CLB) \u2014 CRISPI / Rating: 5.75 \u2014 Est. Price: $91.34 \u2014 Released: 2022-06-10", "commander_status": "Legal", "alt_commander": "Burakos, Party Leader + Folk Hero"}, {"name": "Peace Offering", "commander": "Ms. Bumbleflower", "set_code": "BLC", "set_name": "Bloomburrow Commander", "colors": ["G", "U", "W"], "status": "Legal", "rating": 5.0, "price": 72.74, "release_date": "2024-08-02", "card_image": "https://api.scryfall.com/cards/blc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Bloomburrow Commander (BLC) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $72.74 \u2014 Released: 2024-08-02", "commander_status": "Legal", "alt_commander": "Mr. Foxglove"}, {"name": "Peer Through Time", "commander": "Teferi, Temporal Archmage", "set_code": "C14", "set_name": "Commander 2014", "colors": ["U"], "status": "Legal", "rating": 4.75, "price": 71.61, "release_date": "2014-11-07", "card_image": "https://api.scryfall.com/cards/c14/19?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2014 (C14) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $71.61 \u2014 Released: 2014-11-07", "commander_status": "Legal", "alt_commander": "Llawan, Cephalid Empress / Stitcher Geralf"}, {"name": "Phantom Premonition", "commander": "Ranar the Ever-Watchful", "set_code": "KHM", "set_name": "Kaldheim", "colors": ["U", "W"], "status": "Legal", "rating": 5.25, "price": 51.58, "release_date": "2021-02-05", "card_image": "https://api.scryfall.com/cards/khc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Kaldheim (KHM) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $51.58 \u2014 Released: 2021-02-05", "commander_status": "Legal", "alt_commander": "Vega, the Watcher"}, {"name": "Planar Portal", "commander": "Prosper, Tome-Bound", "set_code": "AFR", "set_name": "Adventures in the Forgotten Realms", "colors": ["B", "R"], "status": "Legal", "rating": 4.75, "price": 97.44, "release_date": "2021-07-23", "card_image": "https://api.scryfall.com/cards/afc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Adventures in the Forgotten Realms (AFR) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $97.44 \u2014 Released: 2021-07-23", "commander_status": "Legal", "alt_commander": "Karazikar, the Eye Tyrant"}, {"name": "Planeswalker Party", "commander": "Commodore Guff", "set_code": "CMM", "set_name": "Commander Masters", "colors": ["R", "U", "W"], "status": "Legal", "rating": 5.5, "price": 102.89, "release_date": "2023-08-04", "card_image": "https://api.scryfall.com/cards/cmm/706?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Masters (CMM) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $102.89 \u2014 Released: 2023-08-04", "commander_status": "Legal", "alt_commander": "Leori, Sparktouched Leader"}, {"name": "Plunder the Graves", "commander": "Meren of Clan Nel Toth", "set_code": "C15", "set_name": "Commander 2015", "colors": ["B", "G"], "status": "Legal", "rating": 4.25, "price": 64.78, "release_date": "2015-11-13", "card_image": "https://api.scryfall.com/cards/c15/49?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2015 (C15) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $64.78 \u2014 Released: 2015-11-13", "commander_status": "Legal", "alt_commander": "Mazirek, Kraul Death Priest / Jarad, Golgari Lich Lord"}, {"name": "Political Puppets", "commander": "Zedruu the Greathearted", "set_code": "CMD", "set_name": "Commander 2011", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.75, "price": 62.49, "release_date": "2011-06-17", "card_image": "https://api.scryfall.com/cards/cmd/240?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2011 (CMD) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $62.49 \u2014 Released: 2011-06-17", "commander_status": "Legal", "alt_commander": "Ruhan of the Fomori / Numot, the Devastator"}, {"name": "Power Hungry", "commander": "Prossh, Skyraider of Kher", "set_code": "C13", "set_name": "Commander 2013", "colors": ["B", "G", "R"], "status": "Legal", "rating": 4.25, "price": 61.52, "release_date": "2013-11-01", "card_image": "https://api.scryfall.com/cards/c13/204?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2013 (C13) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $61.52 \u2014 Released: 2013-11-01", "commander_status": "Legal", "alt_commander": "Shattergang Brothers / Sek'Kuar, Deathkeeper"}, {"name": "Primal Genesis", "commander": "Ghired, Conclave Exile", "set_code": "C19", "set_name": "Commander 2019", "colors": ["G", "R", "W"], "status": "Legal", "rating": 5.5, "price": 61.87, "release_date": "2019-08-23", "card_image": "https://api.scryfall.com/cards/c19/42?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2019 (C19) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $61.87 \u2014 Released: 2019-08-23", "commander_status": "Legal", "alt_commander": "Atla Palani, Nest Tender / Marisi, Breaker of the Coil"}, {"name": "Prismari Artistry", "commander": "Rootha, Mastering the Moment", "set_code": "SOC", "set_name": "Secrets of Strixhaven Commander", "colors": ["R", "U"], "status": "Legal", "rating": 4.5, "price": 68.1, "release_date": "2026-04-24", "card_image": "https://api.scryfall.com/cards/soc/8?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secrets of Strixhaven Commander (SOC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $68.10 \u2014 Released: 2026-04-24", "commander_status": "Legal", "alt_commander": "Nassari, Dean of Expression / Uvilda"}, {"name": "Prismari Performance", "commander": "Zaffai, Thunder Conductor", "set_code": "C21", "set_name": "Commander 2021", "colors": ["R", "U"], "status": "Legal", "rating": 5.0, "price": 53.64, "release_date": "2021-04-23", "card_image": "https://api.scryfall.com/cards/c21/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2021 (C21) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $53.64 \u2014 Released: 2021-04-23", "commander_status": "Legal", "alt_commander": "Veyran, Voice of Duality"}, {"name": "Quandrix Unlimited", "commander": "Zimone, Infinite Analyst", "set_code": "SOC", "set_name": "Secrets of Strixhaven Commander", "colors": ["G", "U"], "status": "Legal", "rating": 4.75, "price": 61.06, "release_date": "2026-04-24", "card_image": "https://api.scryfall.com/cards/soc/10?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secrets of Strixhaven Commander (SOC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $61.06 \u2014 Released: 2026-04-24", "commander_status": "Legal", "alt_commander": "Kianne, Dean of Substance / Imoti"}, {"name": "Quantum Quandrix", "commander": "Adrix and Nev, Twincasters", "set_code": "C21", "set_name": "Commander 2021", "colors": ["G", "U"], "status": "Legal", "rating": 4.25, "price": 57.54, "release_date": "2021-04-23", "card_image": "https://api.scryfall.com/cards/c21/9?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2021 (C21) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $57.54 \u2014 Released: 2021-04-23", "commander_status": "Legal", "alt_commander": "Esix, Fractal Bloom"}, {"name": "Quick Draw", "commander": "Stella Lee, Wild Card", "set_code": "OTC", "set_name": "Outlaws of Thunder Junction Commander", "colors": ["R", "U"], "status": "Legal", "rating": 4.25, "price": 75.73, "release_date": "2024-04-19", "card_image": "https://api.scryfall.com/cards/otc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Outlaws of Thunder Junction Commander (OTC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $75.73 \u2014 Released: 2024-04-19", "commander_status": "Legal", "alt_commander": "Eris, Roar of the Storm"}, {"name": "Raining Cats and Dogs", "commander": "Rin and Seri, Inseparable", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["G", "R", "W"], "status": "Banned", "rating": 5.0, "price": 229.27, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/1508?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $229.27 \u2014 Released: 2019-12-02", "commander_status": "Banned", "alt_commander": "Jinnie Fay, Jetmir's Second / Rin and Seri"}, {"name": "Reap the Tide", "commander": "Aesi, Tyrant of Gyre Strait", "set_code": "CMR", "set_name": "Commander Legends", "colors": ["G", "U"], "status": "Legal", "rating": 4.75, "price": 57.02, "release_date": "2020-11-20", "card_image": "https://api.scryfall.com/cards/cmr/365?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander Legends (CMR) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $57.02 \u2014 Released: 2020-11-20", "commander_status": "Legal", "alt_commander": "Arixmethes, Slumbering Isle"}, {"name": "Rebellion Rising", "commander": "Neyali, Suns' Vanguard", "set_code": "ONC", "set_name": "Phyrexia: All Will Be One Commander", "colors": ["R", "W"], "status": "Legal", "rating": 4.5, "price": 88.63, "release_date": "2023-02-10", "card_image": "https://api.scryfall.com/cards/onc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Phyrexia: All Will Be One Commander (ONC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $88.63 \u2014 Released: 2023-02-10", "commander_status": "Legal", "alt_commander": "Otharri, Suns' Glory"}, {"name": "Revenant Recon", "commander": "Mirko, Obsessive Theorist", "set_code": "MKC", "set_name": "Murders at Karlov Manor Commander", "colors": ["B", "U"], "status": "Legal", "rating": 4.75, "price": 85.68, "release_date": "2024-02-09", "card_image": "https://api.scryfall.com/cards/mkc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Murders at Karlov Manor Commander (MKC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $85.68 \u2014 Released: 2024-02-09", "commander_status": "Legal", "alt_commander": "Marvo, Deep Operative"}, {"name": "Revival Trance", "commander": "Terra, Herald of Hope", "set_code": "FIC", "set_name": "Final Fantasy Commander", "colors": ["B", "R", "W"], "status": "Legal", "rating": 4.5, "price": 47.99, "release_date": "2025-06-13", "card_image": "https://api.scryfall.com/cards/fic/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Final Fantasy Commander (FIC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $47.99 \u2014 Released: 2025-06-13", "commander_status": "Legal", "alt_commander": "Celes, Rune Knight"}, {"name": "Riders of Rohan", "commander": "\u00c9owyn, Shieldmaiden", "set_code": "LTC", "set_name": "Tales of Middle-earth Commander", "colors": ["R", "U", "W"], "status": "Legal", "rating": 5.75, "price": 46.2, "release_date": "2023-06-23", "card_image": "https://api.scryfall.com/cards/ltc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tales of Middle-earth Commander (LTC) \u2014 CRISPI / Rating: 5.75 \u2014 Est. Price: $46.20 \u2014 Released: 2023-06-23", "commander_status": "Legal", "alt_commander": "Aragorn, King of Gondor / Th\u00e9oden, King of Rohan"}, {"name": "Riveteer Rampage", "commander": "Henzie \"Toolbox\" Torre", "set_code": "SNC", "set_name": "Streets of New Capenna", "colors": ["B", "G", "R"], "status": "Legal", "rating": 4.25, "price": 65.47, "release_date": "2022-04-29", "card_image": "https://api.scryfall.com/cards/ncc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Streets of New Capenna (SNC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $65.47 \u2014 Released: 2022-04-29", "commander_status": "Legal", "alt_commander": "The Beamtown Bullies / Henzie \"Toolbox\" Torre"}, {"name": "Ruthless Regiment", "commander": "Jirina Kudro", "set_code": "C20", "set_name": "Commander 2020", "colors": ["B", "R", "W"], "status": "Legal", "rating": 5.75, "price": 80.29, "release_date": "2020-04-17", "card_image": "https://api.scryfall.com/cards/c20/8?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2020 (C20) \u2014 CRISPI / Rating: 5.75 \u2014 Est. Price: $80.29 \u2014 Released: 2020-04-17", "commander_status": "Legal", "alt_commander": "Trynn, Champion of Freedom + Silvar / Kelsien"}, {"name": "Science!", "commander": "Dr. Madison Li", "set_code": "PIP", "set_name": "Fallout", "colors": ["R", "U", "W"], "status": "Legal", "rating": 5.25, "price": 76.03, "release_date": "2024-03-08", "card_image": "https://api.scryfall.com/cards/pip/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Fallout (PIP) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $76.03 \u2014 Released: 2024-03-08", "commander_status": "Legal", "alt_commander": "Liberty Prime, Recharged / Rex, Cyber-Hound"}, {"name": "Scions & Spellcraft", "commander": "Y'shtola, Night's Blessed", "set_code": "FIC", "set_name": "Final Fantasy Commander", "colors": ["B", "U", "W"], "status": "Legal", "rating": 5.0, "price": 62.78, "release_date": "2025-06-13", "card_image": "https://api.scryfall.com/cards/fic/7?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Final Fantasy Commander (FIC) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $62.78 \u2014 Released: 2025-06-13", "commander_status": "Legal", "alt_commander": "G'raha Tia, Scion Reborn"}, {"name": "Scrappy Survivors", "commander": "Dogmeat, Ever Loyal", "set_code": "PIP", "set_name": "Fallout", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.75, "price": 104.98, "release_date": "2024-03-08", "card_image": "https://api.scryfall.com/cards/pip/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Fallout (PIP) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $104.98 \u2014 Released: 2024-03-08", "commander_status": "Legal", "alt_commander": "Preston Garvey, Minuteman / Three Dog, Galaxy News DJ"}, {"name": "Seize Control", "commander": "Mizzix of the Izmagnus", "set_code": "C15", "set_name": "Commander 2015", "colors": ["R", "U"], "status": "Legal", "rating": 4.75, "price": 56.79, "release_date": "2015-11-13", "card_image": "https://api.scryfall.com/cards/c15/50?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2015 (C15) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $56.79 \u2014 Released: 2015-11-13", "commander_status": "Legal", "alt_commander": "Arjun, the Shifting Flame / Melek, Izzet Paragon"}, {"name": "Silverquill Influence", "commander": "Killian, Decisive Mentor", "set_code": "SOC", "set_name": "Secrets of Strixhaven Commander", "colors": ["B", "W"], "status": "Legal", "rating": 4.0, "price": 79.28, "release_date": "2026-04-24", "card_image": "https://api.scryfall.com/cards/soc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secrets of Strixhaven Commander (SOC) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $79.28 \u2014 Released: 2026-04-24", "commander_status": "Legal", "alt_commander": "Shaile, Dean of Radiance / Embrose"}, {"name": "Silverquill Statement", "commander": "Breena, the Demagogue", "set_code": "C21", "set_name": "Commander 2021", "colors": ["B", "W"], "status": "Legal", "rating": 5.25, "price": 87.64, "release_date": "2021-04-23", "card_image": "https://api.scryfall.com/cards/c21/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2021 (C21) \u2014 CRISPI / Rating: 5.25 \u2014 Est. Price: $87.64 \u2014 Released: 2021-04-23", "commander_status": "Legal", "alt_commander": "Felisa, Fang of Silverquill"}, {"name": "Sliver Swarm", "commander": "Sliver Gravemother", "set_code": "CMM", "set_name": "Commander Masters", "colors": ["B", "G", "R", "U", "W"], "status": "Banned", "rating": 4.5, "price": 128.68, "release_date": "2023-08-04", "card_image": "https://api.scryfall.com/cards/cmm/707?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander Masters (CMM) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $128.68 \u2014 Released: 2023-08-04 \u2014 Added to banlist", "commander_status": "Banned", "alt_commander": "Rukarumel, Biologist"}, {"name": "Sneak Attack", "commander": "Anowon, the Ruin Thief", "set_code": "ZNC", "set_name": "Zendikar Rising Commander", "colors": ["B", "U"], "status": "Legal", "rating": 4.75, "price": 39.13, "release_date": "2020-09-25", "card_image": "https://api.scryfall.com/cards/znc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Zendikar Rising Commander (ZNC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $39.13 \u2014 Released: 2020-09-25", "commander_status": "Legal", "alt_commander": "Sygg, River Cutthroat"}, {"name": "Spirit Squadron", "commander": "Millicent, Restless Revenant", "set_code": "VOW", "set_name": "Innistrad: Crimson Vow", "colors": ["U", "W"], "status": "Legal", "rating": 5.75, "price": 43.05, "release_date": "2021-11-19", "card_image": "https://api.scryfall.com/cards/voc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Innistrad: Crimson Vow (VOW) \u2014 CRISPI / Rating: 5.75 \u2014 Est. Price: $43.05 \u2014 Released: 2021-11-19", "commander_status": "Legal", "alt_commander": "Rhoda, Geist Avenger + Timin, Youthful Geist"}, {"name": "Squirreled Away", "commander": "Hazel of the Rootbloom", "set_code": "BLC", "set_name": "Bloomburrow Commander", "colors": ["B", "G"], "status": "Legal", "rating": 4.25, "price": 90.67, "release_date": "2024-08-02", "card_image": "https://api.scryfall.com/cards/blc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Bloomburrow Commander (BLC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $90.67 \u2014 Released: 2024-08-02", "commander_status": "Legal", "alt_commander": "Chatterfang, Squirrel General / Camellia, the Seedmiser"}, {"name": "Stalwart Unity", "commander": "Kynaios and Tiro of Meletis", "set_code": "C16", "set_name": "Commander 2016", "colors": ["G", "R", "U", "W"], "status": "Legal", "rating": 5.0, "price": 157.3, "release_date": "2016-11-11", "card_image": "https://api.scryfall.com/cards/c16/36?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2016 (C16) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $157.30 \u2014 Released: 2016-11-11", "commander_status": "Legal", "alt_commander": "Kraum, Ludevic's Opus + Sidar Kondo / Ludevic + Sidar Kondo"}, {"name": "Subjective Reality", "commander": "Aminatou, the Fateshifter", "set_code": "C18", "set_name": "Commander 2018", "colors": ["B", "U", "W"], "status": "Legal", "rating": 4.5, "price": 48.74, "release_date": "2018-08-10", "card_image": "https://api.scryfall.com/cards/c18/37?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2018 (C18) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $48.74 \u2014 Released: 2018-08-10", "commander_status": "Legal", "alt_commander": "Varina, Lich Queen / Yennett, Cryptic Sovereign"}, {"name": "Sultai Arisen", "commander": "Teval, the Balanced Scale", "set_code": "TDC", "set_name": "Tarkir: Dragonstorm Commander", "colors": ["B", "G", "U"], "status": "Legal", "rating": 3.75, "price": 79.56, "release_date": "2025-04-11", "card_image": "https://api.scryfall.com/cards/tdc/8?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tarkir: Dragonstorm Commander (TDC) \u2014 CRISPI / Rating: 3.75 \u2014 Est. Price: $79.56 \u2014 Released: 2025-04-11", "commander_status": "Legal", "alt_commander": "Kotis, Sibsig Champion"}, {"name": "Swell the Host", "commander": "Ezuri, Claw of Progress", "set_code": "C15", "set_name": "Commander 2015", "colors": ["G", "U"], "status": "Legal", "rating": 4.5, "price": 63.26, "release_date": "2015-11-13", "card_image": "https://api.scryfall.com/cards/c15/44?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2015 (C15) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $63.26 \u2014 Released: 2015-11-13", "commander_status": "Legal", "alt_commander": "Kaseto, Orochi Archmage / Prime Speaker Zegana"}, {"name": "Sworn to Darkness", "commander": "Ob Nixilis of the Black Oath", "set_code": "C14", "set_name": "Commander 2014", "colors": ["B"], "status": "Legal", "rating": 4.25, "price": 80.43, "release_date": "2014-11-07", "card_image": "https://api.scryfall.com/cards/c14/27?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2014 (C14) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $80.43 \u2014 Released: 2014-11-07", "commander_status": "Legal", "alt_commander": "Ghoulcaller Gisa / Drana, Kalastria Bloodchief"}, {"name": "Symbiotic Swarm", "commander": "Kathril, Aspect Warper", "set_code": "C20", "set_name": "Commander 2020", "colors": ["B", "G", "W"], "status": "Legal", "rating": 5.0, "price": 46.85, "release_date": "2020-04-17", "card_image": "https://api.scryfall.com/cards/c20/10?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2020 (C20) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $46.85 \u2014 Released: 2020-04-17", "commander_status": "Legal", "alt_commander": "Tayam, Luminous Enigma / Nikara + Yannik"}, {"name": "Temur Roar", "commander": "Ureni of the Unwritten", "set_code": "TDC", "set_name": "Tarkir: Dragonstorm Commander", "colors": ["G", "R", "U"], "status": "Legal", "rating": 4.75, "price": 60.25, "release_date": "2025-04-11", "card_image": "https://api.scryfall.com/cards/tdc/9?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Tarkir: Dragonstorm Commander (TDC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $60.25 \u2014 Released: 2025-04-11", "commander_status": "Legal", "alt_commander": "Surrak, the Dragonclaw"}, {"name": "The Fantastic Four", "commander": "Mister Fantastic", "set_code": "MSC", "set_name": "Marvel Super Heroes Commander", "colors": ["G", "R", "U", "W"], "status": "Legal", "rating": 5.0, "price": 84.68, "release_date": "2026-06-26", "card_image": "https://api.scryfall.com/cards/msc/876?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Marvel Super Heroes Commander (MSC) \u2014 CRISPI / Rating: 5.0 \u2014 Est. Price: $84.68 \u2014 Released: 2026-06-26", "commander_status": "Legal", "alt_commander": "Invisible Woman / Human Torch / The Thing"}, {"name": "The Ruinous Powers", "commander": "Abaddon the Despoiler", "set_code": "40K", "set_name": "Warhammer 40,000 Commander", "colors": ["B", "R", "U"], "status": "Legal", "rating": 4.5, "price": 198.04, "release_date": "2022-10-07", "card_image": "https://api.scryfall.com/cards/40k/171?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Warhammer 40,000 Commander (40K) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $198.04 \u2014 Released: 2022-10-07", "commander_status": "Legal", "alt_commander": "Be'lakor, the Dark Master / Abaddon the Despoiler"}, {"name": "Theyre Just Like Us but Cooler and with Wings", "commander": "Bruna, the Fading Light", "set_code": "SLD", "set_name": "Secret Lair Drop", "colors": ["W"], "status": "Legal", "rating": 5.5, "price": 304.64, "release_date": "2019-12-02", "card_image": "https://api.scryfall.com/cards/sld/1336?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secret Lair Drop (SLD) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $304.64 \u2014 Released: 2019-12-02", "commander_status": "Legal", "alt_commander": "-"}, {"name": "Timeless Wisdom", "commander": "Gavi, Nest Warden", "set_code": "C20", "set_name": "Commander 2020", "colors": ["R", "U", "W"], "status": "Legal", "rating": 5.5, "price": 116.99, "release_date": "2020-04-17", "card_image": "https://api.scryfall.com/cards/c20/7?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2020 (C20) \u2014 CRISPI / Rating: 5.5 \u2014 Est. Price: $116.99 \u2014 Released: 2020-04-17 \u2014 NOTE: Deck is LEGAL with an alternate commander; Gavi, Nest Warden is BANNED in the command zone.", "commander_status": "Banned", "alt_commander": "Brallin, Skyshark Rider + Shabraz, the Skyshark / Akim"}, {"name": "Timey-Wimey", "commander": "The Tenth Doctor", "set_code": "WHO", "set_name": "Doctor Who", "colors": ["R", "U", "W"], "status": "Legal", "rating": 4.75, "price": 124.13, "release_date": "2023-10-13", "card_image": "https://api.scryfall.com/cards/who/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Doctor Who (WHO) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $124.13 \u2014 Released: 2023-10-13", "commander_status": "Legal", "alt_commander": "The Ninth Doctor + Rose Tyler / The Eleventh Doctor"}, {"name": "Tinker Time", "commander": "Gimbal, Gremlin Prodigy", "set_code": "MOC", "set_name": "March of the Machine Commander", "colors": ["G", "R", "U"], "status": "Legal", "rating": 4.25, "price": 50.79, "release_date": "2023-04-21", "card_image": "https://api.scryfall.com/cards/moc/3?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: March of the Machine Commander (MOC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $50.79 \u2014 Released: 2023-04-21", "commander_status": "Legal", "alt_commander": "Rashmi and Ragavan / Brudiclad, Telchor Engineer"}, {"name": "Token Triumph", "commander": "Emmara, Soul of the Accord", "set_code": "SCD", "set_name": "Starter Commander Decks", "colors": ["G", "W"], "status": "Legal", "rating": 4.75, "price": 27.12, "release_date": "2022-12-02", "card_image": "https://api.scryfall.com/cards/scd/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Starter Commander Decks (SCD) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $27.12 \u2014 Released: 2022-12-02", "commander_status": "Legal", "alt_commander": "Maja, Bretagard Protector"}, {"name": "Tricky Terrain", "commander": "Omo, Queen of Vesuva", "set_code": "M3C", "set_name": "Modern Horizons 3 Commander", "colors": ["G", "U"], "status": "Legal", "rating": 4.75, "price": 123.9, "release_date": "2024-06-14", "card_image": "https://api.scryfall.com/cards/m3c/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Modern Horizons 3 Commander (M3C) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $123.90 \u2014 Released: 2024-06-14", "commander_status": "Legal", "alt_commander": "Jyoti, Moag Ancient"}, {"name": "Turtle Power!", "commander": "Leonardo, the Balance", "set_code": "TMC", "set_name": "Teenage Mutant Ninja Turtles Eternal", "colors": ["B", "G", "R", "U", "W"], "status": "Legal", "rating": 4.25, "price": 77.16, "release_date": "2026-03-06", "card_image": "https://api.scryfall.com/cards/tmc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Teenage Mutant Ninja Turtles Eternal (TMC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $77.16 \u2014 Released: 2026-03-06", "commander_status": "Legal", "alt_commander": "Leonardo, Quick-Witted Leader / Donatello / Raphael / Michelangelo"}, {"name": "Tyranid Swarm", "commander": "The Swarmlord", "set_code": "40K", "set_name": "Warhammer 40,000 Commander", "colors": ["G", "R", "U"], "status": "Banned", "rating": 4.5, "price": 180.57, "release_date": "2022-10-07", "card_image": "https://api.scryfall.com/cards/40k/176?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Warhammer 40,000 Commander (40K) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $180.57 \u2014 Released: 2022-10-07", "commander_status": "Banned", "alt_commander": "Magus Lucea Kane / The Swarmlord"}, {"name": "Undead Unleashed", "commander": "Wilhelt, the Rotcleaver", "set_code": "MID", "set_name": "Innistrad: Midnight Hunt", "colors": ["B", "U"], "status": "Legal", "rating": 4.0, "price": 70.4, "release_date": "2021-09-24", "card_image": "https://api.scryfall.com/cards/mic/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Innistrad: Midnight Hunt (MID) \u2014 CRISPI / Rating: 4.0 \u2014 Est. Price: $70.40 \u2014 Released: 2021-09-24", "commander_status": "Legal", "alt_commander": "Eloise, Nephalia Sleuth / Gisa and Geralf"}, {"name": "Upgrades Unleashed", "commander": "Chishiro, the Shattered Blade", "set_code": "NEO", "set_name": "Kamigawa: Neon Dynasty", "colors": ["G", "R"], "status": "Legal", "rating": 4.25, "price": 65.68, "release_date": "2022-02-18", "card_image": "https://api.scryfall.com/cards/nec/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Kamigawa: Neon Dynasty (NEO) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $65.68 \u2014 Released: 2022-02-18", "commander_status": "Legal", "alt_commander": "Kaima, the Fractured Calm"}, {"name": "Urza's Iron Alliance", "commander": "Urza, Chief Artificer", "set_code": "BRC", "set_name": "The Brothers' War Commander", "colors": ["B", "U", "W"], "status": "Legal", "rating": 4.25, "price": 59.79, "release_date": "2022-11-18", "card_image": "https://api.scryfall.com/cards/brc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: The Brothers' War Commander (BRC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $59.79 \u2014 Released: 2022-11-18", "commander_status": "Legal", "alt_commander": "Tawnos, Solemn Survivor / Alela, Artful Provocateur"}, {"name": "Vampiric Bloodline", "commander": "Strefan, Maurer Progenitor", "set_code": "VOW", "set_name": "Innistrad: Crimson Vow", "colors": ["B", "R"], "status": "Legal", "rating": 4.5, "price": 61.33, "release_date": "2021-11-19", "card_image": "https://api.scryfall.com/cards/voc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Innistrad: Crimson Vow (VOW) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $61.33 \u2014 Released: 2021-11-19", "commander_status": "Legal", "alt_commander": "Kamber, the Plunderer + Laurine, the Diversion"}, {"name": "Vampiric Bloodlust", "commander": "Edgar Markov", "set_code": "C17", "set_name": "Commander 2017", "colors": ["B", "R", "W"], "status": "Banned", "rating": 4.75, "price": 150.85, "release_date": "2017-08-25", "card_image": "https://api.scryfall.com/cards/c17/36?format=image&version=normal", "notes": "STATUS: BANNED \u2014 Set: Commander 2017 (C17) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $150.85 \u2014 Released: 2017-08-25 \u2014 STATUS: BANNED (Deck is fully banned regardless of Commander)", "commander_status": "Banned", "alt_commander": "Licia, Sanguine Tribune / Mathas, Fiend Seeker"}, {"name": "Veloci-Ramp-Tor", "commander": "Pantlaza, Sun-Favored", "set_code": "LCC", "set_name": "The Lost Caverns of Ixalan Commander", "colors": ["G", "R", "W"], "status": "Legal", "rating": 4.25, "price": 92.01, "release_date": "2023-11-17", "card_image": "https://api.scryfall.com/cards/lcc/4?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: The Lost Caverns of Ixalan Commander (LCC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $92.01 \u2014 Released: 2023-11-17", "commander_status": "Legal", "alt_commander": "Wayta, Trainer Prodigy / Gishath, Sun's Avatar"}, {"name": "Virtue and Valor", "commander": "Ellivere of the Wild Court", "set_code": "WOC", "set_name": "Wilds of Eldraine Commander", "colors": ["G", "W"], "status": "Legal", "rating": 4.75, "price": 105.69, "release_date": "2023-09-08", "card_image": "https://api.scryfall.com/cards/woc/2?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Wilds of Eldraine Commander (WOC) \u2014 CRISPI / Rating: 4.75 \u2014 Est. Price: $105.69 \u2014 Released: 2023-09-08", "commander_status": "Legal", "alt_commander": "Giam, the Traitor"}, {"name": "Wade into Battle", "commander": "Kalemne, Disciple of Iroas", "set_code": "C15", "set_name": "Commander 2015", "colors": ["R", "W"], "status": "Legal", "rating": 4.5, "price": 81.44, "release_date": "2015-11-13", "card_image": "https://api.scryfall.com/cards/c15/45?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2015 (C15) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $81.44 \u2014 Released: 2015-11-13", "commander_status": "Legal", "alt_commander": "Gisela, Blade of Goldnight / Anya, Merciless Angel"}, {"name": "Wakanda Forever", "commander": "T'Challa, the Black Panther", "set_code": "MSC", "set_name": "Marvel Super Heroes Commander", "colors": ["G", "W"], "status": "Legal", "rating": 4.5, "price": 68.29, "release_date": "2026-06-26", "card_image": "https://api.scryfall.com/cards/msc/881?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Marvel Super Heroes Commander (MSC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $68.29 \u2014 Released: 2026-06-26", "commander_status": "Legal", "alt_commander": "Shuri, Master of Vibranium / Okoye"}, {"name": "Witherbloom Pestilence", "commander": "Dina, Essence Brewer", "set_code": "SOC", "set_name": "Secrets of Strixhaven Commander", "colors": ["B", "G"], "status": "Legal", "rating": 4.25, "price": 60.48, "release_date": "2026-04-24", "card_image": "https://api.scryfall.com/cards/soc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Secrets of Strixhaven Commander (SOC) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $60.48 \u2014 Released: 2026-04-24", "commander_status": "Legal", "alt_commander": "Gorma, the Gullet"}, {"name": "Witherbloom Witchcraft", "commander": "Willowdusk, Essence Seer", "set_code": "C21", "set_name": "Commander 2021", "colors": ["B", "G"], "status": "Legal", "rating": 4.25, "price": 74.19, "release_date": "2021-04-23", "card_image": "https://api.scryfall.com/cards/c21/6?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Commander 2021 (C21) \u2014 CRISPI / Rating: 4.25 \u2014 Est. Price: $74.19 \u2014 Released: 2021-04-23", "commander_status": "Legal", "alt_commander": "Gyome, Master Chef"}, {"name": "World Shaper", "commander": "Hearthhull, the Worldseed", "set_code": "EOC", "set_name": "Edge of Eternities Commander", "colors": ["B", "G", "R"], "status": "Legal", "rating": 4.5, "price": 44.66, "release_date": "2025-08-01", "card_image": "https://api.scryfall.com/cards/eoc/1?format=image&version=normal", "notes": "STATUS: LEGAL \u2014 Set: Edge of Eternities Commander (EOC) \u2014 CRISPI / Rating: 4.5 \u2014 Est. Price: $44.66 \u2014 Released: 2025-08-01", "commander_status": "Legal", "alt_commander": "Szarel, Genesis Shepherd / Korvold, Fae-Cursed King"}];
+
+    /* ============================================================
+       CONDITIONAL BANS & BANNED COMMANDERS
+       - Fully Banned Decks: Deck is completely forbidden (status: 'Banned').
+       - Banned Commanders: The card is banned in the Command Zone, but
+         the deck itself is 100% LEGAL if run with an alternate commander!
+       ============================================================ */
+    const BANNED_COMMANDERS = [
+      "Atraxa, Praetors' Voice",
+      "Atraxa, Praetor's Voice",
+      "The Ur-Dragon",
+      "Edgar Markov",
+      "Gavi, Nest Warden",
+      "Lathril, Blade of the Elves"
+    ];
+
+    function isCommanderBanned(commanderName) {
+      if (!commanderName) return false;
+      const clean = commanderName.toLowerCase();
+      return BANNED_COMMANDERS.some(c => clean.includes(c.toLowerCase()));
+    }
+
+    function getDeckLegality(deckName) {
+      const precon = PRECONS.find(p => p.name.toLowerCase() === (deckName || '').trim().toLowerCase());
+      if (!precon) return { found: false, deckStatus: 'Unknown', cmdBanned: false, altNeeded: false };
+      const isFullyBanned = precon.status === 'Banned';
+      const cmdBanned = precon.commander_status === 'Banned' || isCommanderBanned(precon.commander);
+      return {
+        found: true,
+        deck: precon,
+        isFullyBanned,
+        cmdBanned,
+        altNeeded: !isFullyBanned && cmdBanned
+      };
+    }
+
+    let leagueData = {
+      games: [],
+      players: {}
+    };
+
+    function saveData() {
+      localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+      if (cloudSyncTimeout) clearTimeout(cloudSyncTimeout);
+      cloudSyncTimeout = setTimeout(() => {
+        syncToCloud();
+      }, 300);
+    }
+
+        function updateDynamicDeckCounters() {
+      const len = PRECONS.length;
+      const statEl = document.getElementById("stat-precon-count");
+      if (statEl) statEl.textContent = len;
+      const tabBtn = document.getElementById("tab-btn-precons");
+      if (tabBtn) tabBtn.innerHTML = `📚 Precon Catalog (${len})`;
+      const totalEl = document.getElementById("precon-total-count");
+      if (totalEl) totalEl.textContent = `${len} Precons Tracked`;
+    }
+
+
+    // ==========================================
+    // SUPABASE LIVE CLOUD BACKEND INTEGRATION
+    // ==========================================
+    const SUPABASE_URL = "https://kvluwyzdeowmqaznulsb.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_v4BZSfhGkADjevpWZ1Je-g_2yUUgPEF";
+    let supabaseClient = null;
+    let isCloudSyncing = false;
+    let cloudSyncTimeout = null;
+
+    function initSupabase() {
+      try {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          updateCloudBadge("syncing", "🔄 Connecting...");
+          syncFromCloud();
+          setupRealtimeSubscription();
+        } else {
+          updateCloudBadge("local", "🟡 Local Mode (No CDN)");
+        }
+      } catch (err) {
+        console.error("Supabase connection error:", err);
+        updateCloudBadge("local", "🟡 Local Cache Only");
+      }
+    }
+
+    function updateCloudBadge(status, text) {
+      const badge = document.getElementById("cloud-sync-badge");
+      if (!badge) return;
+      if (status === "synced") {
+        badge.innerHTML = "🟢 Cloud Synced";
+        badge.style.background = "rgba(16, 185, 129, 0.15)";
+        badge.style.color = "#34d399";
+        badge.style.borderColor = "#059669";
+      } else if (status === "syncing") {
+        badge.innerHTML = text || "🔄 Syncing...";
+        badge.style.background = "rgba(59, 130, 246, 0.15)";
+        badge.style.color = "#60a5fa";
+        badge.style.borderColor = "#2563eb";
+      } else if (status === "local") {
+        badge.innerHTML = text || "🟡 Local Mode";
+        badge.style.background = "rgba(245, 158, 11, 0.15)";
+        badge.style.color = "#fbbf24";
+        badge.style.borderColor = "#d97706";
+      } else if (status === "error") {
+        badge.innerHTML = text || "🔴 Cloud Error";
+        badge.style.background = "rgba(239, 68, 68, 0.15)";
+        badge.style.color = "#f87171";
+        badge.style.borderColor = "#dc2626";
+      }
+    }
+
+    async function syncFromCloud() {
+      if (!supabaseClient) return;
+      try {
+        updateCloudBadge("syncing", "🔄 Downloading...");
+        const { data, error } = await supabaseClient
+          .from('league_state')
+          .select('data, updated_at')
+          .eq('id', 'main')
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // Row not created yet, initial push to cloud
+            console.log("No remote state found, uploading current local state...");
+            await syncToCloud();
+            return;
+          } else if (error.message && error.message.includes('league_state')) {
+            console.warn("Table league_state does not exist yet in Supabase.");
+            updateCloudBadge("local", "🟡 Setup SQL in Supabase");
+            return;
+          }
+          throw error;
+        }
+
+        if (data && data.data) {
+          leagueData = data.data;
+          localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+          refreshAllViews();
+          updateCloudBadge("synced");
+          console.log("Successfully synced league data from Supabase cloud.");
+        }
+      } catch (err) {
+        console.error("Cloud fetch failed:", err);
+        updateCloudBadge("local", "🟡 Local Mode (Offline)");
+      }
+    }
+
+    async function syncToCloud() {
+      if (!supabaseClient) return;
+      if (isCloudSyncing) return;
+      isCloudSyncing = true;
+      updateCloudBadge("syncing", "🔄 Saving to Cloud...");
+
+      try {
+        const { error } = await supabaseClient
+          .from('league_state')
+          .upsert({
+            id: 'main',
+            data: leagueData,
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) {
+          if (error.message && error.message.includes('league_state')) {
+            console.warn("Table league_state does not exist in Supabase yet.");
+            updateCloudBadge("local", "🟡 Setup SQL in Supabase");
+          } else {
+            console.error("Cloud upload error:", error);
+            updateCloudBadge("error", "🔴 Cloud Sync Failed");
+          }
+        } else {
+          updateCloudBadge("synced");
+        }
+      } catch (err) {
+        console.error("Error during syncToCloud:", err);
+        updateCloudBadge("local", "🟡 Local Cache Only");
+      } finally {
+        isCloudSyncing = false;
+      }
+    }
+
+    function setupRealtimeSubscription() {
+      if (!supabaseClient) return;
+      try {
+        supabaseClient
+          .channel('public:league_state')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'league_state', filter: 'id=eq.main' }, payload => {
+            console.log("Realtime update received from Supabase:", payload);
+            if (payload && payload.new && payload.new.data) {
+              leagueData = payload.new.data;
+              localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+              refreshAllViews();
+              updateCloudBadge("synced");
+              showToast("☁️ League standings updated in real time!", "info");
+            }
+          })
+          .subscribe();
+      } catch (e) {
+        console.error("Error setting up Supabase realtime channel:", e);
+      }
+    }
+
+    function manualCloudSync() {
+      if (!supabaseClient) {
+        initSupabase();
+      } else {
+        syncFromCloud();
+      }
+    }
+
+    function refreshAllViews() {
+      renderPreconCatalog();
+      renderDashboard();
+      renderLobbies();
+      if (document.getElementById("tab-history") && document.getElementById("tab-history").classList.contains("active")) {
+        renderHistory();
+      }
+      if (document.getElementById("tab-standings") && document.getElementById("tab-standings").classList.contains("active")) {
+        renderStandings();
+      }
+      if (document.getElementById("tab-admin") && document.getElementById("tab-admin").classList.contains("active")) {
+        renderAdminMatches();
+      }
+      updateKnownPlayersDatalist();
+    }
+
+    function init() {
+      updateDynamicDeckCounters();
+      const saved = localStorage.getItem("mtg_precon_league_data");
+      if (saved) {
+        try {
+          leagueData = JSON.parse(saved);
+        } catch(e) {
+          console.error("Error loading saved data", e);
+        }
+      }
+      document.getElementById("form-date").value = new Date().toISOString().split("T")[0];
+      renderPreconCatalog();
+      renderDashboard();
+      renderLobbies();
+      initSupabase();
+    }
+
+    function switchTab(tabId) {
+      if (tabId === 'pods') updateKnownPlayersDatalist();
+      document.querySelectorAll(".tab-pane").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll("nav button").forEach(el => el.classList.remove("active"));
+      document.getElementById("tab-" + tabId).classList.add("active");
+      if (event && event.target && event.target.tagName === 'BUTTON') {
+        event.target.classList.add("active");
+      }
+
+      if (tabId === "dashboard") renderDashboard();
+      if (tabId === "pods") renderLobbies();
+      if (tabId === "games") renderGames();
+      if (tabId === "players") renderPlayers();
+      if (tabId === "admin") renderAdmin();
+    }
+
+    function renderColorPips(colors) {
+      if (!colors || colors.length === 0) return '<span class="mana-pip mana-C">C</span>';
+      return colors.map(c => `<span class="mana-pip mana-${c}">${c}</span>`).join('');
+    }
+
+        let preconSortCol = 'name';
+    let preconSortAsc = true;
+
+    function renderDeckRowHtml(d) {
+      let badgeHtml = '';
+      const leg = getDeckLegality(d.name);
+      
+      if (d.status === "Banned") {
+        badgeHtml = '<span class="badge badge-banned">Banned Deck</span>';
+      } else if (leg.altNeeded) {
+        badgeHtml = '<span class="badge badge-conditional" title="Deck is legal, but commander is banned. Alternate commander required!">Alt Cmd Req</span>';
+      } else if (d.status === "Testing") {
+        badgeHtml = '<span class="badge badge-testing">Testing</span>';
+      } else {
+        badgeHtml = '<span class="badge badge-legal">Legal</span>';
+      }
+
+      let cmdHtml = d.commander;
+      if (leg.cmdBanned) {
+        cmdHtml = `<span style="text-decoration: line-through; color: #f87171;" title="Banned in Command Zone">${d.commander}</span> <span class="badge badge-banned" style="font-size:0.65rem;">Banned Cmd</span>`;
+      }
+
+      let altHtml = d.alt_commander || '-';
+      if (leg.altNeeded && altHtml !== '-') {
+        altHtml = `<span style="color:#38bdf8; font-weight:600;">✨ ${altHtml}</span>`;
+      } else if (altHtml !== '-') {
+        altHtml = `<span style="color:#94a3b8;">${altHtml}</span>`;
+      }
+
+      return `
+        <tr>
+          <td>${badgeHtml}</td>
+          <td><b>${d.name}</b></td>
+          <td>${cmdHtml}</td>
+          <td>${altHtml}</td>
+          <td>${renderColorPips(d.colors)}</td>
+          <td><span style="color:var(--text-muted)">${d.set_code || '-'}</span></td>
+          <td style="font-size:0.8rem; color:var(--text-muted);">${d.notes || '-'}</td>
+        </tr>
+      `;
+    }
+
+    function sortPrecons(column) {
+      if (preconSortCol === column) {
+        preconSortAsc = !preconSortAsc;
+      } else {
+        preconSortCol = column;
+        preconSortAsc = true;
+      }
+      filterPrecons();
+    }
+
+    function renderPreconCatalog() {
+      filterPrecons();
+    }
+
+    function filterPrecons() {
+      const search = (document.getElementById("precon-search").value || '').toLowerCase();
+      const statusFilter = document.getElementById("precon-filter-status").value;
+      const colorFilter = document.getElementById("precon-filter-color").value;
+
+      let filtered = PRECONS.filter(d => {
+        const altText = (d.alt_commander || '').toLowerCase();
+        const matchesSearch = d.name.toLowerCase().includes(search) || 
+                              d.commander.toLowerCase().includes(search) || 
+                              altText.includes(search) ||
+                              (d.set_code && d.set_code.toLowerCase().includes(search));
+        
+        const leg = getDeckLegality(d.name);
+        let matchesStatus = true;
+        if (statusFilter === "Legal") {
+          matchesStatus = d.status === "Legal" && !leg.altNeeded;
+        } else if (statusFilter === "Conditional") {
+          matchesStatus = leg.altNeeded;
+        } else if (statusFilter === "Banned") {
+          matchesStatus = d.status === "Banned";
+        } else if (statusFilter === "Testing") {
+          matchesStatus = d.status === "Testing";
+        }
+
+        const matchesColor = colorFilter === "ALL" || (d.colors && d.colors.includes(colorFilter));
+        return matchesSearch && matchesStatus && matchesColor;
+      });
+
+      // Sorting
+      filtered.sort((a, b) => {
+        let valA = a[preconSortCol] || '';
+        let valB = b[preconSortCol] || '';
+        if (Array.isArray(valA)) valA = valA.join('');
+        if (Array.isArray(valB)) valB = valB.join('');
+        
+        const cmp = String(valA).localeCompare(String(valB));
+        return preconSortAsc ? cmp : -cmp;
+      });
+
+      const countEl = document.getElementById("precon-total-count");
+      if (countEl) {
+        if (filtered.length === PRECONS.length) {
+          countEl.textContent = `${PRECONS.length} Precons Tracked`;
+        } else {
+          countEl.textContent = `${filtered.length} of ${PRECONS.length} Precons`;
+        }
+      }
+
+      const tbody = document.getElementById("precon-table-body");
+      tbody.innerHTML = filtered.map(renderDeckRowHtml).join('');
+    }
+
+    function normalizeName(name) {
+      const n = (name || '').trim();
+      const lower = n.toLowerCase();
+      if (lower.includes('steven') || lower.includes('stephen')) return 'Steven Westdahl';
+      if (lower.startsWith('matt')) return 'Matt';
+      if (lower.startsWith('gabe')) return 'Gabe';
+      return n;
+    }
+
+    function renderDashboard() {
+      const games = leagueData.games || [];
+      document.getElementById("stat-total-games").innerText = games.length;
+
+      const playerMap = {};
+      const deckSet = new Set();
+
+      games.forEach(g => {
+        g.players.forEach(p => {
+          const pName = normalizeName(p.name);
+          if (!pName) return;
+          if (!playerMap[pName]) {
+            playerMap[pName] = { games: 0, wins: 0, top2: 0, points: 0, totalFinish: 0 };
+          }
+          playerMap[pName].games++;
+          if (p.place === 1) playerMap[pName].wins++;
+          if (p.place <= 2) playerMap[pName].top2++;
+          playerMap[pName].totalFinish += p.place;
+          
+          const pts = Math.max(1, 5 - p.place);
+          playerMap[pName].points += pts;
+
+          if (p.deck) deckSet.add(p.deck);
+        });
+      });
+
+      const playerList = Object.keys(playerMap).map(k => ({
+        name: k,
+        ...playerMap[k],
+        winRate: ((playerMap[k].wins / playerMap[k].games) * 100).toFixed(1),
+        avgFinish: (playerMap[k].totalFinish / playerMap[k].games).toFixed(2)
+      })).sort((a,b) => b.points - a.points || b.wins - a.wins);
+
+      document.getElementById("stat-active-players").innerText = playerList.length;
+      document.getElementById("stat-unique-decks").innerText = deckSet.size;
+
+      const tbody = document.getElementById("leaderboard-body");
+      if (playerList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 30px;">No match data recorded yet. Use <b>➕ Log Match</b> to record your first game!</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = playerList.map((p, idx) => `
+        <tr>
+          <td><b>#${idx + 1}</b></td>
+          <td><b>${p.name}</b></td>
+          <td>${p.games}</td>
+          <td><span style="color:var(--success); font-weight:700;">${p.wins}</span></td>
+          <td>${p.top2}</td>
+          <td>${p.winRate}%</td>
+          <td>${p.avgFinish}</td>
+          <td><span style="color:var(--accent); font-weight:700; font-size:1rem;">${p.points}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderGames() {
+      const container = document.getElementById("games-container");
+      const games = leagueData.games || [];
+      if (games.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 30px;">No games recorded yet.</p>';
+        return;
+      }
+
+      container.innerHTML = games.slice().reverse().map((g, gIdx) => `
+        <div class="pod-card">
+          <h3>
+            <span>Round ${g.round} &mdash; ${g.date}</span>
+            <button class="btn btn-danger btn-sm" onclick="deleteGame(${games.length - 1 - gIdx})">Delete</button>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Place</th>
+                <th>Player</th>
+                <th>Deck</th>
+                <th>Turn Order</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${g.players.map(p => `
+                <tr>
+                  <td><b>${p.place}</b></td>
+                  <td>${normalizeName(p.name)}</td>
+                  <td>${p.deck || '-'}</td>
+                  <td>${p.turnOrder ? 'Seat ' + p.turnOrder : '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `).join('');
+    }
+
+    function renderPlayers() {
+      const tbody = document.getElementById("players-list-body");
+      const playerMap = {};
+      (leagueData.games || []).forEach(g => {
+        g.players.forEach(p => {
+          const name = normalizeName(p.name);
+          if (!playerMap[name]) playerMap[name] = { games: 0, wins: 0, decks: {} };
+          playerMap[name].games++;
+          if (p.place === 1) playerMap[name].wins++;
+          if (p.deck) {
+            playerMap[name].decks[p.deck] = (playerMap[name].decks[p.deck] || 0) + 1;
+          }
+        });
+      });
+
+      const list = Object.keys(playerMap).map(k => {
+        let topDeck = "-";
+        let maxD = 0;
+        for (let d in playerMap[k].decks) {
+          if (playerMap[k].decks[d] > maxD) {
+            maxD = playerMap[k].decks[d];
+            topDeck = d;
+          }
+        }
+        return {
+          name: k,
+          games: playerMap[k].games,
+          wins: playerMap[k].wins,
+          winRate: ((playerMap[k].wins / playerMap[k].games) * 100).toFixed(1),
+          topDeck: topDeck
+        };
+      }).sort((a,b) => b.games - a.games);
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No players recorded yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(p => `
+        <tr>
+          <td><b>${p.name}</b></td>
+          <td>${p.topDeck}</td>
+          <td>${p.games}</td>
+          <td>${p.wins}</td>
+          <td>${p.winRate}%</td>
+        </tr>
+      `).join('');
+    }
+
+    function openGameModal() {
+      const rows = document.getElementById("player-rows");
+      rows.innerHTML = '';
+      for (let i = 1; i <= 3; i++) {
+        addRowHtml(i);
+      }
+      updateAddPlayerButtonText();
+      document.getElementById("game-modal").classList.add("active");
+    }
+
+    
+    
+    function getKnownLeaguePlayers() {
+      const names = new Set();
+      (leagueData.games || []).forEach(g => {
+        (g.players || []).forEach(p => {
+          if (p.name && p.name.trim()) names.add(normalizeName(p.name.trim()));
+        });
+      });
+      return Array.from(names).sort((a, b) => a.localeCompare(b));
+    }
+
+    function updateKnownPlayersDatalist() {
+      let dl = document.getElementById("known-players-datalist");
+      if (!dl) {
+        dl = document.createElement("datalist");
+        dl.id = "known-players-datalist";
+        document.body.appendChild(dl);
+      }
+      const players = getKnownLeaguePlayers();
+      dl.innerHTML = players.map(p => `<option value="${escapeHtml(p)}"></option>`).join('');
+      renderPlayerRosterPills();
+    }
+
+    function renderPlayerRosterPills() {
+      const container = document.getElementById("known-players-pills");
+      if (!container) return;
+      const players = getKnownLeaguePlayers();
+      if (players.length === 0) {
+        container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No players recorded in match history yet. As matches are logged, player roster pills will appear here!</span>';
+        return;
+      }
+      
+      const textarea = document.getElementById("pod-players-input");
+      const currentLines = (textarea ? textarea.value : '').split('\n').map(l => l.trim().toLowerCase()).filter(Boolean);
+
+      container.innerHTML = players.map(name => {
+        const isPresent = currentLines.includes(name.toLowerCase());
+        const bg = isPresent ? 'var(--primary)' : '#1e293b';
+        const color = isPresent ? '#fff' : 'var(--text-muted)';
+        const border = isPresent ? '1px solid var(--accent)' : '1px solid #334155';
+        const icon = isPresent ? '✓ ' : '+ ';
+        return `
+          <button type="button" onclick="togglePlayerAttendance('${escapeHtml(name)}')" 
+                  style="background:${bg}; color:${color}; border:${border}; border-radius:14px; padding:3px 10px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:3px; transition:all 0.15s ease;">
+            <span>${icon}</span><span>${escapeHtml(name)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function togglePlayerAttendance(name) {
+      const textarea = document.getElementById("pod-players-input");
+      if (!textarea) return;
+      const lines = textarea.value.split('\n').map(l => l.trim()).filter(Boolean);
+      const existingIdx = lines.findIndex(l => l.toLowerCase() === name.toLowerCase());
+      if (existingIdx !== -1) {
+        lines.splice(existingIdx, 1);
+      } else {
+        lines.push(name);
+      }
+      textarea.value = lines.join('\n');
+      renderPlayerRosterPills();
+    }
+
+    function quickAddPlayer() {
+      const input = document.getElementById("quick-add-player-input");
+      if (!input || !input.value.trim()) return;
+      const name = input.value.trim();
+      const textarea = document.getElementById("pod-players-input");
+      if (textarea) {
+        const lines = textarea.value.split('\n').map(l => l.trim()).filter(Boolean);
+        if (!lines.some(l => l.toLowerCase() === name.toLowerCase())) {
+          lines.push(name);
+          textarea.value = lines.join('\n');
+        }
+      }
+      input.value = '';
+      renderPlayerRosterPills();
+    }
+
+    function clearAttendingPlayers() {
+      const textarea = document.getElementById("pod-players-input");
+      if (textarea) {
+        textarea.value = '';
+        renderPlayerRosterPills();
+      }
+    }
+
+
+    function getDeckCommanderInfo(deckName) {
+      if (!deckName) return { defaultCmd: '', options: [] };
+      const d = PRECONS.find(p => p.name.toLowerCase() === deckName.toLowerCase().trim());
+      if (!d) return { defaultCmd: '', options: [] };
+      const opts = [];
+      if (d.commander) opts.push(d.commander);
+      if (d.alt_commander && d.alt_commander !== '-') {
+        d.alt_commander.split('/').forEach(alt => {
+          const trimmed = alt.trim();
+          if (trimmed && !opts.includes(trimmed)) opts.push(trimmed);
+        });
+      }
+      let def = d.commander || '';
+      if (isCommanderBanned(d.commander)) {
+        const legalAlt = opts.find(o => !isCommanderBanned(o));
+        if (legalAlt) def = legalAlt;
+      }
+      return { defaultCmd: def, options: opts };
+    }
+
+    function onDeckInputChange(deckInput) {
+      checkDeckLegalityInline(deckInput);
+      const row = deckInput.closest('.player-result-row');
+      if (!row) return;
+      const cmdInput = row.querySelector('.p-commander');
+      if (!cmdInput) return;
+      const info = getDeckCommanderInfo(deckInput.value);
+      if (info.defaultCmd && (!cmdInput.value || cmdInput.dataset.autofilled === 'true')) {
+        cmdInput.value = info.defaultCmd;
+        cmdInput.dataset.autofilled = 'true';
+      }
+      const cmdList = row.querySelector('.commander-datalist');
+      if (cmdList) {
+        cmdList.innerHTML = info.options.map(opt => `<option value="${escapeHtml(opt)}"></option>`).join('');
+      }
+    }
+
+    function onLobbyDeckInput(lobbyId, pIdx, deckInput) {
+      const deckVal = deckInput.value;
+      updateLobbyPlayer(lobbyId, pIdx, 'deck', deckVal);
+      checkDeckLegalityInline(deckInput);
+      const row = deckInput.closest('tr');
+      if (!row) return;
+      const cmdInput = row.querySelector('.lobby-p-cmd');
+      if (!cmdInput) return;
+      const info = getDeckCommanderInfo(deckVal);
+      if (info.defaultCmd && (!cmdInput.value || cmdInput.dataset.autofilled === 'true')) {
+        cmdInput.value = info.defaultCmd;
+        cmdInput.dataset.autofilled = 'true';
+        updateLobbyPlayer(lobbyId, pIdx, 'commander', info.defaultCmd);
+      }
+      const cmdList = row.querySelector('.lobby-cmd-datalist');
+      if (cmdList) {
+        cmdList.innerHTML = info.options.map(opt => `<option value="${escapeHtml(opt)}"></option>`).join('');
+      }
+    }
+
+    function updateAddPlayerButtonText() {
+      const btn = document.getElementById("btn-add-player-slot");
+      if (!btn) return;
+      const count = document.querySelectorAll("#player-rows .player-result-row").length;
+      if (count === 3) {
+        btn.textContent = "+ Add 4th Player";
+        btn.style.display = "inline-block";
+      } else if (count === 4) {
+        btn.textContent = "+ Add 5th Player";
+        btn.style.display = "inline-block";
+      } else if (count === 5) {
+        btn.textContent = "+ Add 6th Player";
+        btn.style.display = "inline-block";
+      } else if (count >= 6) {
+        btn.style.display = "none";
+      } else {
+        btn.textContent = "+ Add Player";
+        btn.style.display = "inline-block";
+      }
+    }
+
+    function addPlayerRow() {
+      const count = document.querySelectorAll("#player-rows .player-result-row").length + 1;
+      if (count > 6) return;
+      addRowHtml(count);
+      updateAddPlayerButtonText();
+    }
+
+    function addRowHtml(num) {
+      const div = document.createElement("div");
+      div.className = "player-result-row";
+      div.style.marginBottom = "10px";
+      div.style.padding = "10px";
+      div.style.background = "#0f172a";
+      div.style.borderRadius = "8px";
+      
+      const medals = { 1: '🥇 1st Place (Winner)', 2: '🥈 2nd Place', 3: '🥉 3rd Place', 4: '4th Place', 5: '5th Place', 6: '6th Place' };
+      const label = medals[num] || `#${num} Place`;
+      const rowUid = 'row_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+      
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-weight:700; color:var(--accent);">${label}</span>
+          ${num > 3 ? `<button type="button" onclick="this.closest('.player-result-row').remove(); reindexPlayerRows();" style="background:none; border:none; color:#f87171; cursor:pointer; font-size:0.8rem;">✕ Remove Player</button>` : ''}
+        </div>
+        <div style="display:grid; grid-template-columns: 1.2fr 1.5fr 1.5fr 1fr; gap:8px;">
+          <input type="text" placeholder="Player Name" list="known-players-datalist" class="p-name" required>
+          <div>
+            <input type="text" placeholder="Precon Deck" list="precon-datalist" class="p-deck" oninput="onDeckInputChange(this)" style="width:100%; margin-bottom:2px;">
+            <div class="deck-warning" style="font-size:0.75rem; min-height:16px;"></div>
+          </div>
+          <div>
+            <input type="text" placeholder="Commander (Card Name)" list="${rowUid}_cmd_list" class="p-commander" oninput="this.dataset.autofilled='false'" style="width:100%; margin-bottom:2px;">
+            <datalist id="${rowUid}_cmd_list" class="commander-datalist"></datalist>
+          </div>
+          <select class="p-turn">
+            <option value="">Turn Order</option>
+            <option value="1">Seat 1 (T1)</option>
+            <option value="2">Seat 2 (T2)</option>
+            <option value="3">Seat 3 (T3)</option>
+            <option value="4">Seat 4 (T4)</option>
+            <option value="5">Seat 5 (T5)</option>
+            <option value="6">Seat 6 (T6)</option>
+          </select>
+        </div>
+      `;
+      document.getElementById("player-rows").appendChild(div);
+    }
+
+    function reindexPlayerRows() {
+      const rows = document.querySelectorAll("#player-rows .player-result-row");
+      const medals = { 1: '🥇 1st Place (Winner)', 2: '🥈 2nd Place', 3: '🥉 3rd Place', 4: '4th Place', 5: '5th Place', 6: '6th Place' };
+      rows.forEach((row, i) => {
+        const num = i + 1;
+        const titleSpan = row.querySelector("span");
+        if (titleSpan) titleSpan.textContent = medals[num] || `#${num} Place`;
+      });
+      updateAddPlayerButtonText();
+    }
+
+    function closeGameModal() {
+      document.getElementById("game-modal").classList.remove("active");
+    }
+
+        function checkDeckLegalityInline(inputElem) {
+      const parent = inputElem.parentElement;
+      const warnDiv = parent.querySelector('.deck-warning');
+      if (!warnDiv) return;
+      const val = inputElem.value.trim();
+      if (!val) { warnDiv.innerHTML = ''; return; }
+      const leg = getDeckLegality(val);
+      if (leg.found) {
+        if (leg.isFullyBanned) {
+          warnDiv.innerHTML = '<span style="color:#f87171; font-weight:600;">🚫 BANNED DECK — League Ineligible</span>';
+        } else if (leg.altNeeded) {
+          warnDiv.innerHTML = `<span style="color:#fbbf24; font-weight:600;">⚠️ ${leg.deck.commander} is BANNED! Alternate commander required in Command Zone.</span>`;
+        } else {
+          warnDiv.innerHTML = '<span style="color:#34d399;">✓ Legal Precon</span>';
+        }
+      } else {
+        warnDiv.innerHTML = '';
+      }
+    }
+
+    function saveGame(e) {
+      e.preventDefault();
+      const round = parseInt(document.getElementById("form-round").value);
+      const date = document.getElementById("form-date").value;
+      
+      const rows = document.querySelectorAll(".player-result-row");
+      const players = [];
+
+      rows.forEach((r, idx) => {
+        const name = r.querySelector(".p-name").value.trim();
+        const deck = r.querySelector(".p-deck").value.trim();
+        const turnOrder = r.querySelector(".p-turn").value ? parseInt(r.querySelector(".p-turn").value) : null;
+        if (name) {
+          players.push({
+            place: idx + 1,
+            name: name,
+            deck: deck,
+            turnOrder: turnOrder
+          });
+        }
+      });
+
+      if (players.length < 2) {
+        alert("Please enter at least 2 players.");
+        return;
+      }
+
+      // Precon Ban validation
+      for (const p of players) {
+        if (p.deck) {
+          const leg = getDeckLegality(p.deck);
+          if (leg.found && leg.isFullyBanned) {
+            alert(`Cannot log match: The deck "${p.deck}" chosen by ${p.name} is FULLY BANNED in the league.`);
+            return;
+          }
+        }
+      }
+
+      leagueData.games.push({
+        round: round,
+        date: date,
+        players: players
+      });
+
+      localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+      closeGameModal();
+      renderDashboard();
+      renderGames();
+      renderPlayers();
+    }
+
+    function deleteGame(idx) {
+      if (confirm("Are you sure you want to delete this match?")) {
+        leagueData.games.splice(idx, 1);
+        localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+        renderDashboard();
+        renderGames();
+        renderPlayers();
+        renderAdmin();
+      }
+    }
+
+    // ======= ADMIN TOOLS =======
+
+    function renderAdmin() {
+      const tbody = document.getElementById("admin-games-body");
+      const games = leagueData.games || [];
+      if (games.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">No match data recorded yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = games.slice().reverse().map((g, i) => {
+        const realIdx = games.length - 1 - i;
+        return `
+          <tr>
+            <td>${g.date}</td>
+            <td>Round ${g.round}</td>
+            <td>${g.players.map(p => normalizeName(p.name)).join(", ")}</td>
+            <td style="white-space: nowrap;">
+              <button class="btn btn-sm btn-secondary" onclick="openEditGame(${realIdx})">✎ Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteGame(${realIdx})">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openEditGame(idx) {
+      const g = leagueData.games[idx];
+      document.getElementById("edit-idx").value = idx;
+      document.getElementById("edit-round").value = String(g.round);
+      document.getElementById("edit-date").value = g.date;
+      renderEditRows(g.players || []);
+      document.getElementById("edit-date").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function renderEditRows(players) {
+      const container = document.getElementById("edit-player-rows");
+      container.innerHTML = players.map((p, idx) => adminRowHTML(p, idx)).join('');
+    }
+
+    function adminRowHTML(p, idx) {
+      return `
+        <div class="player-result-row" style="display:grid; gap:8px; grid-template-columns:50px 1fr 1fr 70px; margin-bottom:8px; align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label>Place</label>
+            <input type="number" class="p-place" value="${idx + 1}" min="1">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Player</label>
+            <input type="text" class="p-name" value="${escapeHtml(p.name)}" list="player-suggestions">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Deck</label>
+            <input type="text" class="p-deck" value="${escapeHtml(p.deck || '')}" list="deck-suggestions">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Turn</label>
+            <input type="number" class="p-turn" value="${p.turnOrder || ''}">
+          </div>
+        </div>`;
+    }
+
+    function addAdminRow() {
+      const container = document.getElementById("edit-player-rows");
+      const idx = container.querySelectorAll(".player-result-row").length;
+      container.insertAdjacentHTML("beforeend", adminRowHTML({ name: "", deck: "", turnOrder: null }, idx));
+    }
+
+    function saveAdminEdit(e) {
+      e.preventDefault();
+      const idx = parseInt(document.getElementById("edit-idx").value);
+      if (idx < 0) { alert("Select a match to edit first (or use Add Match in the settings tab)."); return; }
+      const rows = document.querySelectorAll("#edit-player-rows .player-result-row");
+      const players = [];
+      rows.forEach((r, i) => {
+        const name = r.querySelector(".p-name").value.trim();
+        const deck = r.querySelector(".p-deck").value.trim();
+        const place = parseInt(r.querySelector(".p-place").value) || i + 1;
+        const turn = r.querySelector(".p-turn").value ? parseInt(r.querySelector(".p-turn").value) : null;
+        if (name) players.push({ place: place, name: name, deck: deck, turnOrder: turn });
+      });
+      if (players.length < 2) { alert("Please enter at least 2 players."); return; }
+      players.sort((a, b) => a.place - b.place);
+      leagueData.games[idx].round = parseInt(document.getElementById("edit-round").value);
+      leagueData.games[idx].date = document.getElementById("edit-date").value;
+      leagueData.games[idx].players = players;
+      localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+      cancelEdit();
+      renderDashboard(); renderGames(); renderPlayers(); renderAdmin();
+      alert("Match updated.");
+    }
+
+    function cancelEdit() {
+      document.getElementById("edit-idx").value = -1;
+      document.getElementById("edit-player-rows").innerHTML = "";
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // CSV export helpers
+    function standingsRows() {
+      const playerMap = {};
+      (leagueData.games || []).forEach(g => g.players.forEach(p => {
+        const n = normalizeName(p.name);
+        if (!n) return;
+        if (!playerMap[n]) playerMap[n] = { games: 0, wins: 0, top2: 0, points: 0, total: 0 };
+        playerMap[n].games++; playerMap[n].wins += p.place === 1 ? 1 : 0;
+        playerMap[n].top2 += p.place <= 2 ? 1 : 0;
+        playerMap[n].points += Math.max(1, 5 - p.place);
+        playerMap[n].total += p.place;
+      }));
+      return Object.keys(playerMap).map(k => ({
+        name: k, games: playerMap[k].games, wins: playerMap[k].wins,
+        top2: playerMap[k].top2, points: playerMap[k].points,
+        winRate: (playerMap[k].wins / playerMap[k].games * 100).toFixed(1),
+        avgFinish: (playerMap[k].total / playerMap[k].games).toFixed(2)
+      })).sort((a, b) => b.points - a.points || b.wins - a.wins);
+    }
+
+    function download(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvFromRows(headers, rows) {
+      const esc = v => `"${String(v ?? "").replace(/"/g, "\"\"")}"`;
+      return [headers.map(esc).join(","), ...rows.map(r => headers.map(h => esc(r[h])).join(","))].join("\n");
+    }
+
+    function exportStandingsCSV() {
+      const headers = ["Rank","Player","Games","Wins","Top 2","Win %","Avg Finish","Points"];
+      const rows = standingsRows().map((p, i) => ({ Rank: i + 1, Player: p.name, Games: p.games, Wins: p.wins, "Top 2": p.top2, "Win %": p.winRate + "%", "Avg Finish": p.avgFinish, Points: p.points }));
+      download("league_standings.csv", csvFromRows(headers, rows), "text/csv");
+    }
+
+    function exportMatchesCSV() {
+      const headers = ["Date","Round","Place","Player","Deck","Commander","Turn Order","Points"];
+      const rows = [];
+      (leagueData.games || []).forEach((g, gi) => g.players.slice().sort((a, b) => a.place - b.place).forEach(p => {
+        rows.push({ Date: g.date, Round: g.round, Place: p.place, Player: normalizeName(p.name), Deck: p.deck || "", Commander: p.commander || "", "Turn Order": p.turnOrder || "", Points: Math.max(1, 5 - p.place) });
+      }));
+      download("league_match_log.csv", csvFromRows(headers, rows), "text/csv");
+    }
+
+    function exportHTMLReport() {
+      const rows = standingsRows();
+      const rowsHtml = rows.map((p, i) => `<tr><td>${i + 1}</td><td><b>${p.name}</b></td><td>${p.games}</td><td>${p.wins}</td><td>${p.top2}</td><td>${p.winRate}%</td><td>${p.avgFinish}</td><td style="font-weight:700;color:#38bdf8">${p.points}</td></tr>`).join("") || '<tr><td colspan="8">No data</td></tr>';
+      const outHtml = '<!doctype html><html><head><meta charset="utf-8"><title>League Report</title><style>body{font-family:system-ui;background:#0f172a;color:#f8fafc;padding:24px}table{border-collapse:collapse;width:100%}th,td{padding:8px 12px;border-bottom:1px solid #334155;text-align:left}th{color:#94a3b8;text-transform:uppercase;font-size:12px}h1{color:#818cf8}</style></' + 'head><body><h1>⚔️ MTG Pre-Con League Report</h1><p>Generated: ' + new Date().toISOString().slice(0,10) + ' &mdash; ' + (leagueData.games||[]).length + ' matches, ' + rows.length + ' players</p><table><thead><tr><th>Rank</th><th>Player</th><th>Games</th><th>Wins</th><th>Top 2</th><th>Win %</th><th>Avg Finish</th><th>Points</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></body></html>';
+      download("league_report.html", outHtml, "text/html");
+    }
+
+    function generateReport() {
+      const start = document.getElementById("report-start").value;
+      const end = document.getElementById("report-end").value;
+      const games = (leagueData.games || []).filter(g => {
+        if (start && g.date < start) return false;
+        if (end && g.date > end) return false;
+        return true;
+      });
+      const playerMap = {};
+      games.forEach(g => g.players.forEach(p => {
+        const n = normalizeName(p.name);
+        if (!n) return;
+        if (!playerMap[n]) playerMap[n] = { games: 0, wins: 0, points: 0 };
+        playerMap[n].games++; playerMap[n].wins += p.place === 1 ? 1 : 0;
+        playerMap[n].points += Math.max(1, 5 - p.place);
+      }));
+      const rows = Object.keys(playerMap).map(k => ({ Player: k, Games: playerMap[k].games, Wins: playerMap[k].wins, Points: playerMap[k].points })).sort((a, b) => b.points - a.points);
+      const headers = ["Player","Games","Wins","Points"];
+      const daterange = `range_${start || "start"}_to_${end || "today"}`;
+      download(`league_report_${daterange}.csv`, csvFromRows(headers, rows), "text/csv");
+    }
+
+        /* ============================================================
+       TOPDECK-STYLE LOBBY & POD SYSTEM
+       ============================================================ */
+    function getActiveLobbies() {
+      if (!leagueData.lobbies) leagueData.lobbies = [];
+      return leagueData.lobbies;
+    }
+
+    function saveLobbies() {
+      saveData();
+      renderLobbies();
+    }
+
+    function generatePods(roundType) {
+      const text = document.getElementById("pod-players-input").value.trim();
+      if (!text) {
+        showToast("Please enter attending players.", "error");
+        return;
+      }
+      const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length < 3) {
+        showToast("Need at least 3 players to form pods.", "error");
+        return;
+      }
+
+      const todayStr = new Date().toISOString().split("T")[0];
+      let playerPool = [];
+
+      if (roundType === 2) {
+        // Game 2 Winners Pod Matching:
+        // Find most recent Game 1 finish for each player across recorded games
+        const playerRankMap = {};
+        const gamesList = (leagueData.games || []);
+        
+        // Loop from most recent to oldest game
+        for (let i = gamesList.length - 1; i >= 0; i--) {
+          const g = gamesList[i];
+          const isGame1 = (g.round === 1 || g.round === '1' || g.round === 'Game 1');
+          if (isGame1) {
+            (g.players || []).forEach(p => {
+              if (p.name && p.place) {
+                const norm = normalizeName(p.name);
+                if (playerRankMap[norm] === undefined) {
+                  playerRankMap[norm] = parseInt(p.place);
+                }
+              }
+            });
+          }
+        }
+
+        // Map attending players with their seed rank:
+        // 1 = 1st Place (Winner) -> Seeded into top tables
+        // 2 = 2nd Place
+        // 3 = 3rd Place
+        // 4+ = 4th+ Place
+        // 2.5 = Late arrivals / No Game 1 recorded (blended into middle)
+        playerPool = lines.map(name => {
+          const norm = normalizeName(name);
+          const rank = (playerRankMap[norm] !== undefined) ? playerRankMap[norm] : 2.5;
+          return { name, rank, jitter: Math.random() };
+        });
+
+        // Strict sort by placement rank (ascending: 1st place winners first), with randomized tie-breaking
+        playerPool.sort((a, b) => {
+          if (a.rank !== b.rank) return a.rank - b.rank;
+          return a.jitter - b.jitter;
+        });
+        
+        playerPool = playerPool.map(p => p.name);
+      } else {
+        // Game 1: Full Random Shuffle
+        playerPool = [...lines].sort(() => Math.random() - 0.5);
+      }
+
+      // Optimal Commander Pod Partitioning (Favors 4-player pods, cleanly handles 3-player pods, handles 5/6 if needed)
+      const total = playerPool.length;
+      let podSizes = [];
+      
+      if (total === 3) podSizes = [3];
+      else if (total === 4) podSizes = [4];
+      else if (total === 5) podSizes = [5];
+      else if (total === 6) podSizes = [3, 3];
+      else {
+        // Find best combination of 4s and 3s: 4*a + 3*b = total
+        let best = null;
+        for (let a = Math.floor(total / 4); a >= 0; a--) {
+          const rem = total - 4 * a;
+          if (rem % 3 === 0) {
+            const b = rem / 3;
+            best = { a, b };
+            break;
+          }
+        }
+        if (best) {
+          for (let i = 0; i < best.a; i++) podSizes.push(4);
+          for (let i = 0; i < best.b; i++) podSizes.push(3);
+        } else {
+          // Fallback
+          const num = Math.round(total / 4) || 1;
+          for (let i = 0; i < num; i++) podSizes.push(Math.floor(total / num));
+          for (let i = 0; i < total % num; i++) podSizes[i]++;
+        }
+      }
+
+      const pods = [];
+      let playerCursor = 0;
+      podSizes.forEach(size => {
+        pods.push(playerPool.slice(playerCursor, playerCursor + size));
+        playerCursor += size;
+      });
+
+      const createdLobbies = [];
+
+      pods.forEach((podPlayers, idx) => {
+        const lobbyId = 'lobby_' + Date.now() + '_' + (idx + 1);
+        const lobby = {
+          id: lobbyId,
+          table: idx + 1,
+          round: roundType === 2 ? 'Game 2' : 'Game 1',
+          date: todayStr,
+          players: podPlayers.map((name, pIdx) => ({
+            name: name,
+            deck: '',
+            commander: '',
+            turn: '',
+            place: ''
+          }))
+        };
+        createdLobbies.push(lobby);
+      });
+
+      if (!leagueData.lobbies) leagueData.lobbies = [];
+      leagueData.lobbies.push(...createdLobbies);
+      saveLobbies();
+
+      // Output quick summary
+      const output = document.getElementById("generated-pods-output");
+      output.innerHTML = `
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+          <h4 style="color:#34d399; margin:0 0 6px 0;">🎉 ${createdLobbies.length} ${roundType === 2 ? 'Game 2 Pod Lobbies (Seeded Winners Pods)' : 'Game 1 Pod Lobbies'} Created!</h4>
+          <p style="margin:0; font-size:0.85rem; color:var(--text-muted);">Pods generated for ${total} attending players. ${roundType === 2 ? 'Game 1 winners have been placed at Table 1/Top Tables.' : ''}</p>
+        </div>
+      ` + createdLobbies.map(l => `
+        <div class="pod-card" style="margin-bottom:8px; padding:10px;">
+          <div style="font-weight:700; color:var(--accent);">Table ${l.table} (${l.round})</div>
+          <div style="font-size:0.85rem; color:var(--text-muted);">${l.players.map(p => p.name).join(' · ')}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderLobbies() {
+      const container = document.getElementById("lobbies-container");
+      const countSpan = document.getElementById("lobby-count");
+      if (!container) return;
+
+      const lobbies = getActiveLobbies();
+      if (countSpan) countSpan.textContent = lobbies.length;
+
+      if (lobbies.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">No active match lobbies. Generate pods above to spawn lobbies.</div>';
+        return;
+      }
+
+      container.innerHTML = lobbies.map((lobby, lIdx) => {
+        return `
+          <div class="card" style="background: #0b1120; border: 1px solid #334155; margin-bottom: 16px; padding: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #1e293b; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <div>
+                <span style="font-size:1.1rem; font-weight:700; color:var(--accent);">⚔️ Table ${lobby.table}</span>
+                <span class="badge" style="background:#1e293b; margin-left:8px;">${lobby.round}</span>
+                <span style="color:var(--text-muted); font-size:0.85rem; margin-left:8px;">${lobby.date}</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm btn-secondary" onclick="addLobbyPlayer('${lobby.id}')" style="font-size:0.8rem;">+ Add Player</button>
+                <button class="btn btn-sm btn-secondary" style="color:#f87171; font-size:0.8rem;" onclick="deleteLobby('${lobby.id}')">Dismiss Lobby</button>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table style="width:100%; font-size:0.9rem; margin-bottom:12px;">
+                <thead>
+                  <tr style="border-bottom:1px solid #334155; color:var(--text-muted); text-align:left;">
+                    <th style="padding:6px; width:20%;">Player</th>
+                    <th style="padding:6px; width:25%;">Precon Deck</th>
+                    <th style="padding:6px; width:25%;">Commander</th>
+                    <th style="padding:6px; width:13%;">Turn Order</th>
+                    <th style="padding:6px; width:15%;">Placement</th>
+                    <th style="padding:6px; width:2%;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${lobby.players.map((p, pIdx) => {
+                    const info = getDeckCommanderInfo(p.deck || '');
+                    const datalistId = `lobby_cmd_${lobby.id}_${pIdx}`;
+                    return `
+                    <tr style="border-bottom:1px solid #1e293b;">
+                      <td style="padding:6px; font-weight:600;">
+                        <input type="text" value="${escapeHtml(p.name || '')}" list="known-players-datalist" placeholder="Player Name"
+                               oninput="updateLobbyPlayer('${lobby.id}', ${pIdx}, 'name', this.value)"
+                               style="width:100%; margin:0; padding:6px 8px; font-size:0.85rem;">
+                      </td>
+                      <td style="padding:6px;">
+                        <input type="text" list="precon-datalist" value="${p.deck || ''}" 
+                               placeholder="Select Precon..." 
+                               oninput="onLobbyDeckInput('${lobby.id}', ${pIdx}, this)"
+                               style="width:100%; margin:0; padding:6px 8px; font-size:0.85rem;">
+                        <div class="deck-warning" style="font-size:0.75rem;"></div>
+                      </td>
+                      <td style="padding:6px;">
+                        <input type="text" list="${datalistId}" value="${p.commander || ''}" class="lobby-p-cmd"
+                               placeholder="Commander Card Name"
+                               oninput="updateLobbyPlayer('${lobby.id}', ${pIdx}, 'commander', this.value); this.dataset.autofilled='false'"
+                               style="width:100%; margin:0; padding:6px 8px; font-size:0.85rem;">
+                        <datalist id="${datalistId}" class="lobby-cmd-datalist">
+                          ${info.options.map(opt => `<option value="${escapeHtml(opt)}"></option>`).join('')}
+                        </datalist>
+                      </td>
+                      <td style="padding:6px;">
+                        <select onchange="updateLobbyPlayer('${lobby.id}', ${pIdx}, 'turn', this.value)" style="margin:0; padding:6px; font-size:0.85rem; width:100%;">
+                          <option value="">Turn ?</option>
+                          ${Array.from({length: lobby.players.length}, (_, i) => i + 1).map(n => `<option value="${n}" ${p.turn == n ? 'selected' : ''}>Seat ${n} (T${n})</option>`).join('')}
+                        </select>
+                      </td>
+                      <td style="padding:6px;">
+                        <select onchange="updateLobbyPlayer('${lobby.id}', ${pIdx}, 'place', this.value)" style="margin:0; padding:6px; font-size:0.85rem; width:100%; font-weight:700;">
+                          <option value="">Finish ?</option>
+                          ${Array.from({length: lobby.players.length}, (_, i) => i + 1).map(n => {
+                            const medalMap = { 1: '🥇 1st Place', 2: '🥈 2nd Place', 3: '🥉 3rd Place', 4: '4th Place', 5: '5th Place', 6: '6th Place' };
+                            return `<option value="${n}" ${p.place == n ? 'selected' : ''}>${medalMap[n] || (n + 'th Place')}</option>`;
+                          }).join('')}
+                        </select>
+                      </td>
+                      <td style="padding:6px; text-align:center;">
+                        ${lobby.players.length > 2 ? `
+                          <button type="button" onclick="removeLobbyPlayer('${lobby.id}', ${pIdx})" 
+                                  title="Remove player from table"
+                                  style="background:none; border:none; color:#f87171; cursor:pointer; font-size:1rem; padding:0 4px;">✕</button>
+                        ` : ''}
+                      </td>
+                    </tr>
+                  `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <span style="font-size:0.8rem; color:var(--text-muted);">
+                ${lobby.players.length} Players Seated · ${lobby.players.length >= 3 ? 'Valid Pod' : '⚠️ Need at least 3 players'}
+              </span>
+              <button class="btn btn-sm" onclick="verifyAndRecordLobby('${lobby.id}')" style="background:#10b981; color:#fff; font-weight:700;">
+                ✓ Verify & Record Match
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addLobbyPlayer(lobbyId) {
+      const lobbies = getActiveLobbies();
+      const lobby = lobbies.find(l => l.id === lobbyId);
+      if (!lobby) return;
+      if (lobby.players.length >= 6) {
+        showToast("Maximum 6 players per table pod.", "error");
+        return;
+      }
+      lobby.players.push({
+        name: '',
+        deck: '',
+        commander: '',
+        turn: '',
+        place: ''
+      });
+      saveLobbies();
+    }
+
+    function removeLobbyPlayer(lobbyId, pIdx) {
+      const lobbies = getActiveLobbies();
+      const lobby = lobbies.find(l => l.id === lobbyId);
+      if (!lobby || !lobby.players[pIdx]) return;
+      lobby.players.splice(pIdx, 1);
+      saveLobbies();
+    }
+
+    function updateLobbyPlayer(lobbyId, pIdx, field, value) {
+      const lobbies = getActiveLobbies();
+      const lobby = lobbies.find(l => l.id === lobbyId);
+      if (!lobby || !lobby.players[pIdx]) return;
+      lobby.players[pIdx][field] = value;
+      saveData();
+    }
+
+    function deleteLobby(lobbyId) {
+      if (!confirm("Dismiss this match lobby?")) return;
+      if (!leagueData.lobbies) return;
+      leagueData.lobbies = leagueData.lobbies.filter(l => l.id !== lobbyId);
+      saveLobbies();
+    }
+
+    function clearAllLobbies() {
+      if (!leagueData.lobbies || leagueData.lobbies.length === 0) return;
+      if (!confirm("Are you sure you want to clear all active match lobbies?")) return;
+      leagueData.lobbies = [];
+      saveLobbies();
+    }
+
+    
+    function showToast(message, type = 'success') {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+      const toast = document.createElement("div");
+      toast.className = `toast toast-${type}`;
+      const icon = type === 'success' ? '✅' : '⚠️';
+      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      container.appendChild(toast);
+      
+      // Trigger animation
+      setTimeout(() => toast.classList.add("show"), 10);
+      
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function verifyAndRecordLobby(lobbyId) {
+      const lobbies = getActiveLobbies();
+      const lobby = lobbies.find(l => l.id === lobbyId);
+      if (!lobby) return;
+
+      // Validation
+      const unranked = lobby.players.filter(p => !p.place);
+      if (unranked.length > 0) {
+        showToast("Please assign placement (1st, 2nd, etc.) for all players.", "error");
+        return;
+      }
+
+      // Check for 1st place winner
+      const places = lobby.players.map(p => parseInt(p.place));
+      const firsts = places.filter(pl => pl === 1);
+      if (firsts.length === 0) {
+        showToast("Please designate a 🥇 1st place winner.", "error");
+        return;
+      }
+
+      // Precon Ban check & Commander Ban check
+      for (const p of lobby.players) {
+        if (p.deck) {
+          const leg = getDeckLegality(p.deck);
+          if (leg.found && leg.isFullyBanned) {
+            showToast(`Deck "${p.deck}" chosen by ${p.name} is FULLY BANNED.`, "error");
+            return;
+          }
+        }
+        if (p.commander && isCommanderBanned(p.commander)) {
+          showToast(`Commander "${p.commander}" is BANNED in the Command Zone!`, "error");
+          return;
+        }
+      }
+
+      // Commit to recorded games
+      const newGame = {
+        id: 'game_' + Date.now(),
+        date: lobby.date || new Date().toISOString().split("T")[0],
+        round: lobby.round === 'Game 2' ? 2 : 1,
+        table: lobby.table,
+        players: lobby.players.map(p => ({
+          name: p.name.trim(),
+          deck: (p.deck || '').trim(),
+          commander: (p.commander || '').trim(),
+          turnOrder: p.turn ? parseInt(p.turn) : null,
+          place: parseInt(p.place)
+        }))
+      };
+
+      if (!leagueData.games) leagueData.games = [];
+      leagueData.games.push(newGame);
+
+      // Remove lobby from active list
+      leagueData.lobbies = leagueData.lobbies.filter(l => l.id !== lobbyId);
+      saveData();
+      
+      // Update all views immediately
+      renderDashboard();
+      renderPlayers();
+      renderGames();
+      updateKnownPlayersDatalist();
+      renderAdmin();
+      renderLobbies();
+
+      const winner = lobby.players.find(p => parseInt(p.place) === 1);
+      const winnerName = winner ? normalizeName(winner.name) : 'Winner';
+      showToast(`🎉 Table ${lobby.table} recorded! 🥇 ${winnerName} won with ${winner?.deck || 'Precon'}!`, "success");
+    }
+
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(leagueData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mtg_league_backup_${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed && Array.isArray(parsed.games)) {
+            leagueData = parsed;
+            saveData();
+            refreshAllViews();
+            if (supabaseClient) {
+              await syncToCloud();
+            }
+            showToast("📥 League data imported & synced to cloud!", "success");
+            alert("League data imported and synced to database successfully!");
+          } else {
+            alert("Invalid league data format.");
+          }
+        } catch(err) {
+          alert("Error parsing JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function clearData() {
+      if (confirm("⚠️ Reset all match history and active lobbies? This will clear both local storage AND the live Supabase cloud database!")) {
+        leagueData = { games: [], players: {}, lobbies: [] };
+        saveData();
+        refreshAllViews();
+        if (supabaseClient) {
+          await syncToCloud();
+        }
+        showToast("🗑️ All league data has been reset.", "info");
+      }
+    }
+
+    // Datalist for autocomplete
+    const datalist = document.createElement("datalist");
+    datalist.id = "precon-datalist";
+    datalist.innerHTML = PRECONS.map(d => {
+      const leg = getDeckLegality(d.name);
+      let tag = '';
+      if (d.status === 'Banned') tag = ' [BANNED DECK]';
+      else if (leg.altNeeded) tag = ' [ALT COMMANDER REQUIRED]';
+      return `<option value="${d.name}">${d.name} (${d.colors.join('/')})${tag}</option>`;
+    }).join('');
+    document.body.appendChild(datalist);
+
+    window.onload = init;
+  </script>
+</body>
+</html>
