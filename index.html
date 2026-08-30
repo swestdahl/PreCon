@@ -768,6 +768,7 @@
     let supabaseClient = null;
     let isCloudSyncing = false;
     let cloudSyncTimeout = null;
+    let lastLocalUpdatedAt = null;  // guards realtime echoes of our own upserts
 
     function initSupabase() {
       try {
@@ -836,11 +837,24 @@
         }
 
         if (data && data.data) {
-          leagueData = data.data;
+          const remote = data.data;
+          let merged;
+          const localGames = (leagueData && Array.isArray(leagueData.games)) ? leagueData.games : [];
+          const remoteGames = (remote && Array.isArray(remote.games)) ? remote.games : [];
+          if (localGames.length && remoteGames.length) {
+            const key = g => JSON.stringify([g.round, g.date, (g.players||[]).map(p=>[p.name,p.deck])]);
+            const remoteKeys = new Set(remoteGames.map(key));
+            const localOnly = localGames.filter(g => !remoteKeys.has(key(g)));
+            merged = { ...remote, games: remoteGames.concat(localOnly) };
+          } else {
+            merged = remote;
+          }
+          leagueData = merged;
           localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
           refreshAllViews();
           updateCloudBadge("synced");
-          console.log("Successfully synced league data from Supabase cloud.");
+          console.log("Successfully synced league data from Supabase cloud (merged).");
+          saveData();
         }
       } catch (err) {
         console.error("Cloud fetch failed:", err);
@@ -855,13 +869,15 @@
       updateCloudBadge("syncing", "🔄 Saving to Cloud...");
 
       try {
+        const sentAt = new Date().toISOString();
         const { error } = await supabaseClient
           .from('league_state')
           .upsert({
             id: 'main',
             data: leagueData,
-            updated_at: new Date().toISOString()
+            updated_at: sentAt
           });
+        if (!error) lastLocalUpdatedAt = sentAt;
 
         if (error) {
           if (error.message && error.message.includes('league_state')) {
@@ -890,6 +906,13 @@
           .on('postgres_changes', { event: '*', schema: 'public', table: 'league_state', filter: 'id=eq.main' }, payload => {
             console.log("Realtime update received from Supabase:", payload);
             if (payload && payload.new && payload.new.data) {
+              if (lastLocalUpdatedAt && payload.new.updated_at === lastLocalUpdatedAt) {
+                console.log("Ignoring realtime echo of our own save:", lastLocalUpdatedAt);
+                return;
+              }
+              const incoming = JSON.stringify(payload.new.data);
+              const current = JSON.stringify(leagueData);
+              if (incoming === current) return;  // no-op update
               leagueData = payload.new.data;
               localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
               refreshAllViews();
@@ -1530,7 +1553,7 @@
         players: players
       });
 
-      localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
+      saveData();
       closeGameModal();
       renderDashboard();
       renderGames();
