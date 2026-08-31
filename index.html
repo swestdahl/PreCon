@@ -519,6 +519,11 @@
     <!-- TAB: PLAYERS & DECKS -->
     <div id="tab-players" class="tab-pane">
       <div class="card">
+        <h2>👥 League Roster</h2>
+        <p style="color: var(--text-muted); margin-bottom: 12px;">Pre-populated league members. These appear as quick-add options when registering players for a game. Editable — add/remove anyone here.</p>
+        <div id="roster-editor"></div>
+      </div>
+      <div class="card">
         <h2>👥 League Players & Assigned Decks</h2>
         <div style="overflow-x: auto;">
           <table>
@@ -738,7 +743,28 @@
 
     let leagueData = {
       games: [],
-      players: {}
+      players: {},
+      roster: [
+        "Gabe",
+        "Matt",
+        "Kate",
+        "Lou",
+        "Thomas",
+        "Jules",
+        "Neil",
+        "Lucy",
+        "Jodie",
+        "Aftyn",
+        "Hanalore",
+        "Kolin",
+        "Joe",
+        "Trent",
+        "Steven",
+        "Mads",
+        "Cameron",
+        "Won",
+        "John"
+      ]
     };
 
     function saveData() {
@@ -979,7 +1005,7 @@
       if (tabId === "dashboard") renderDashboard();
       if (tabId === "pods") renderLobbies();
       if (tabId === "games") renderGames();
-      if (tabId === "players") renderPlayers();
+      if (tabId === "players") { renderRosterEditor(); renderPlayers(); }
       if (tabId === "admin") renderAdmin();
     }
 
@@ -1200,6 +1226,7 @@
     }
 
     function renderPlayers() {
+      renderRosterEditor();
       const tbody = document.getElementById("players-list-body");
       const playerMap = {};
       (leagueData.games || []).forEach(g => {
@@ -1260,8 +1287,57 @@
 
     
     
+    function renderRosterEditor() {
+      const container = document.getElementById("roster-editor");
+      if (!container) return;
+      const roster = leagueData.roster || [];
+      container.innerHTML = `
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+          ${roster.map(n => `
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--bg-card, #1e293b); border: 1px solid var(--border, #334155); border-radius: 999px; padding: 4px 12px 4px 14px; font-size: 0.9rem;">
+              ${escapeHtml(n)}
+              <button type="button" onclick="removeFromRoster(${JSON.stringify(n).replace(/"/g, '&quot;')})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 2px;" title="Remove ${escapeHtml(n)}">×</button>
+            </span>
+          `).join('')}
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <input id="roster-add-input" type="text" placeholder="Add player name…" list="known-players-datalist" style="flex: 1; min-width: 180px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border, #334155); background: var(--bg-input, #0f172a); color: var(--text, #e2e8f0);" />
+          <button class="btn" type="button" onclick="addToRoster()">+ Add</button>
+        </div>
+      `;
+    }
+
+    function addToRoster() {
+      const input = document.getElementById("roster-add-input");
+      if (!input) return;
+      const name = input.value.trim();
+      if (!name) return;
+      if (!leagueData.roster) leagueData.roster = [];
+      const canon = normalizeName(name);
+      if (!leagueData.roster.some(r => normalizeName(r) === canon)) {
+        leagueData.roster.push(canon);
+        saveData();
+      }
+      renderRosterEditor();
+      updateKnownPlayersDatalist();
+    }
+
+    function removeFromRoster(name) {
+      if (!leagueData.roster) return;
+      const canon = normalizeName(name);
+      leagueData.roster = leagueData.roster.filter(r => normalizeName(r) !== canon);
+      saveData();
+      renderRosterEditor();
+      updateKnownPlayersDatalist();
+    }
+
     function getKnownLeaguePlayers() {
       const names = new Set();
+      // Roster is the canonical pre-populated member list
+      (leagueData.roster || []).forEach(n => {
+        if (n && n.trim()) names.add(normalizeName(n.trim()));
+      });
+      // Also union with names discovered in match history
       (leagueData.games || []).forEach(g => {
         (g.players || []).forEach(p => {
           if (p.name && p.name.trim()) names.add(normalizeName(p.name.trim()));
