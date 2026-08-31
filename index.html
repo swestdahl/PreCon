@@ -1123,12 +1123,7 @@
     }
 
     function normalizeName(name) {
-      const n = (name || '').trim();
-      const lower = n.toLowerCase();
-      if (lower.includes('steven') || lower.includes('stephen')) return 'Steven Westdahl';
-      if (lower.startsWith('matt')) return 'Matt';
-      if (lower.startsWith('gabe')) return 'Gabe';
-      return n;
+      return (name || '').trim();
     }
 
     function renderDashboard() {
