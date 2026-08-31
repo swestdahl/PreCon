@@ -876,6 +876,8 @@
             merged = remote;
           }
           leagueData = merged;
+          // Always ensure the roster includes the default league members (merge, not replace)
+          ensureRosterSeed();
           localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
           refreshAllViews();
           updateCloudBadge("synced");
@@ -886,6 +888,20 @@
         console.error("Cloud fetch failed:", err);
         updateCloudBadge("local", "🟡 Local Mode (Offline)");
       }
+    }
+
+    function ensureRosterSeed() {
+      const DEFAULTS = [
+        "Gabe","Matt","Kate","Lou","Thomas","Jules","Neil","Lucy","Jodie","Aftyn",
+        "Hanalore","Kolin","Joe","Trent","Steven","Mads","Cameron","Won","John"
+      ];
+      if (!Array.isArray(leagueData.roster)) leagueData.roster = [];
+      const existing = new Set(leagueData.roster.map(n => n.trim().toLowerCase()));
+      DEFAULTS.forEach(d => {
+        if (!existing.has(d.toLowerCase())) leagueData.roster.push(d);
+      });
+      // sort the roster alphabetically (case-insensitive)
+      leagueData.roster.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
     }
 
     async function syncToCloud() {
@@ -987,6 +1003,9 @@
         }
       }
       document.getElementById("form-date").value = new Date().toISOString().split("T")[0];
+      // Make sure the default roster is present on every load, merged with saved data
+      ensureRosterSeed();
+      localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
       renderPreconCatalog();
       renderDashboard();
       renderLobbies();
@@ -1285,7 +1304,7 @@
     function renderRosterEditor() {
       const container = document.getElementById("roster-editor");
       if (!container) return;
-      const roster = leagueData.roster || [];
+      const roster = (leagueData.roster || []).slice().sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
       container.innerHTML = `
         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
           ${roster.map(n => `
