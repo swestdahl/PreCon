@@ -524,7 +524,7 @@
         <div id="roster-editor"></div>
       </div>
       <div class="card">
-        <h2>👥 League Players & Assigned Decks</h2>
+        <h2>👥 League Players & Decks</h2>
         <div style="overflow-x: auto;">
           <table>
             <thead>
@@ -1330,6 +1330,7 @@
       const canon = normalizeName(name);
       if (!leagueData.roster.some(r => normalizeName(r) === canon)) {
         leagueData.roster.push(canon);
+        leagueData.roster.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
         saveData();
       }
       renderRosterEditor();
@@ -1424,6 +1425,14 @@
           lines.push(name);
           textarea.value = lines.join('\n');
         }
+      }
+      // ALSO add to the league roster so the name appears as a known player everywhere
+      if (!Array.isArray(leagueData.roster)) leagueData.roster = [];
+      const canon = name.trim();
+      if (!leagueData.roster.some(r => r.trim().toLowerCase() === canon.toLowerCase())) {
+        leagueData.roster.push(canon);
+        leagueData.roster.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+        saveData();
       }
       input.value = '';
       renderPlayerRosterPills();
