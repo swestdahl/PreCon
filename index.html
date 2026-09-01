@@ -744,27 +744,7 @@
     let leagueData = {
       games: [],
       players: {},
-      roster: [
-        "Gabe",
-        "Matt",
-        "Kate",
-        "Lou",
-        "Thomas",
-        "Jules",
-        "Neil",
-        "Lucy",
-        "Jodie",
-        "Aftyn",
-        "Hanalore",
-        "Kolin",
-        "Joe",
-        "Trent",
-        "Steven",
-        "Mads",
-        "Cameron",
-        "Won",
-        "John"
-      ]
+      roster: []
     };
 
     function saveData() {
@@ -891,15 +871,10 @@
     }
 
     function ensureRosterSeed() {
-      const DEFAULTS = [
-        "Gabe","Matt","Kate","Lou","Thomas","Jules","Neil","Lucy","Jodie","Aftyn",
-        "Hanalore","Kolin","Joe","Trent","Steven","Mads","Cameron","Won","John"
-      ];
+      // NOTE: no hardcoded defaults — the roster is user-controlled.
+      // Previously this re-added default names on every load, so removed
+      // names (e.g. "Hanalore") kept repopulating.
       if (!Array.isArray(leagueData.roster)) leagueData.roster = [];
-      const existing = new Set(leagueData.roster.map(n => n.trim().toLowerCase()));
-      DEFAULTS.forEach(d => {
-        if (!existing.has(d.toLowerCase())) leagueData.roster.push(d);
-      });
       // sort the roster alphabetically (case-insensitive)
       leagueData.roster.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
     }
