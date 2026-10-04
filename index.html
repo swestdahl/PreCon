@@ -1478,8 +1478,58 @@
     // Reverse lookup: commander card -> precon deck. Face commanders (p=3) and
     // alt commanders (p=2) win over legends found inside the 99 (p=1). Ties resolve
     // to the newer precon. Built from /space/precon_decks lists + PRECONS.
+    // Build the global commander suggestion list from PRECONS (proper casing).
+    let CMD_SUGGESTIONS = null;
+    function buildCommanderSuggestions() {
+      if (CMD_SUGGESTIONS) return CMD_SUGGESTIONS;
+      const seen = new Set();
+      const out = [];
+      PRECONS.forEach(p => {
+        const names = [p.commander];
+        if (p.alt_commander && p.alt_commander !== '-') {
+          p.alt_commander.split(/[\/\+]/).forEach(a => names.push(a.trim()));
+        }
+        names.forEach(n => {
+          if (!n) return;
+          const key = n.toLowerCase();
+          if (seen.has(key)) return;
+          seen.add(key);
+          out.push(n);
+        });
+      });
+      out.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+      CMD_SUGGESTIONS = out;
+      return out;
+    }
+
+    // Populate the commander datalist for a row with prefix-matched suggestions.
+    function updateCommanderSuggestions(input) {
+      const row = input.closest('tr') || input.closest('.player-result-row') || input.closest('div');
+      if (!row) return;
+      const list = row.querySelector('.commander-datalist') || row.querySelector('.lobby-cmd-datalist');
+      if (!list) return;
+      const v = input.value.trim().toLowerCase();
+      const all = buildCommanderSuggestions();
+      let opts;
+      if (!v) {
+        // Deck already picked? Show that deck's commanders first.
+        const deckInput = row.querySelector('.p-deck') || row.querySelector('input[list="precon-datalist"]');
+        if (deckInput && deckInput.value.trim()) {
+          opts = getDeckCommanderInfo(deckInput.value.trim()).options;
+        } else {
+          opts = all.slice(0, 40);
+        }
+      } else {
+        const starts = all.filter(n => n.toLowerCase().startsWith(v));
+        const contains = all.filter(n => !starts.includes(n) && n.toLowerCase().includes(v));
+        opts = starts.concat(contains).slice(0, 40);
+      }
+      list.innerHTML = opts.map(o => `<option value="${escapeHtml(o)}"></option>`).join('');
+    }
+
     function onCommanderInput(input) {
       input.dataset.autofilled = 'false';
+      updateCommanderSuggestions(input);
       const v = input.value.trim();
       if (!v) return;
       const info = LEGEND_INDEX[v.toLowerCase()];
@@ -1618,6 +1668,7 @@
         </div>
       `;
       document.getElementById("player-rows").appendChild(div);
+      updateCommanderSuggestions(div.querySelector('.p-commander'));
     }
 
     function reindexPlayerRows() {
