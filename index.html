@@ -350,7 +350,7 @@
     <button onclick="switchTab('players')">👥 Players & Decks</button>
     <button onclick="switchTab('rules')">📜 League Rules & Draft Guide</button>
     <button onclick="switchTab('settings')">⚙️ Data & Settings</button>
-    <button onclick="switchTab('admin')">🛠️ Admin Tools</button>
+    <button onclick="switchTab('admin')" id="admin-nav-button" style="display:none;">🛠️ Admin Tools</button>
   </nav>
 
   <main>
@@ -578,7 +578,10 @@
     <!-- TAB: ADMIN TOOLS -->
     <div id="tab-admin" class="tab-pane">
       <div class="card">
-        <h2>🛠️ Admin Tools</h2>
+        <h2>
+          <span>🛠️ Admin Tools</span>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="lockAdminMode()">🔒 Lock Admin</button>
+        </h2>
         <p style="color: var(--text-muted); margin-bottom: 16px;">Manage, edit, and export league match data. Administrators can edit or delete individual matches and generate detailed reports.</p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
           <button class="btn" onclick="exportStandingsCSV()">📄 Export Standings (CSV)</button>
@@ -651,17 +654,17 @@
         <p style="color: var(--text-muted); margin-bottom: 16px;">Export your league data to a JSON backup file or import existing records.</p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <button class="btn" onclick="exportData()">💾 Export League Data (JSON)</button>
-          <label class="btn btn-secondary" style="cursor: pointer; margin: 0;">
+          <label class="btn btn-secondary admin-only-control" style="cursor: pointer; margin: 0; display: none;">
             📂 Import League Data <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
           </label>
-          <button class="btn btn-danger" onclick="clearData()">🗑️ Reset Match Data</button>
+          <button class="btn btn-danger admin-only-control" style="display: none;" onclick="clearData()">🗑️ Reset Match Data</button>
         </div>
       </div>
     </div>
 
     <!-- App Footer -->
     <footer style="text-align: center; padding: 24px 16px; margin-top: 32px; border-top: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.82rem;">
-      Created by <span style="color: var(--accent); font-weight: 600;">SomewhatUnique</span> & <span style="color: var(--text); font-weight: 600;">rool</span>
+      Created by <span id="admin-secret-trigger" onclick="handleAdminSecretClick()" style="color: var(--accent); font-weight: 600; user-select: none;">SomewhatUnique</span> & <span style="color: var(--text); font-weight: 600;">rool</span>
     </footer>
   </main>
 
@@ -788,6 +791,69 @@
       if (totalEl) totalEl.textContent = `${len} Precons Tracked`;
     }
 
+
+    // Lightweight UI lock: this hides casual access to record editing and
+    // destructive controls. It is not a substitute for server-side authorization.
+    let adminUnlocked = false;
+    let adminSecretClickCount = 0;
+    let adminSecretClickTimer = null;
+
+    try {
+      adminUnlocked = sessionStorage.getItem("mtg_admin_unlocked") === "1";
+    } catch (e) {
+      adminUnlocked = false;
+    }
+
+    function updateAdminAccessUI() {
+      const navButton = document.getElementById("admin-nav-button");
+      if (navButton) navButton.style.display = adminUnlocked ? "inline-flex" : "none";
+      document.querySelectorAll(".admin-only-control").forEach(control => {
+        control.style.display = adminUnlocked ? "" : "none";
+      });
+    }
+
+    function requireAdminAccess(action = "use this control") {
+      if (adminUnlocked) return true;
+      showToast(`🔒 Admin access is required to ${action}.`, "error");
+      return false;
+    }
+
+    function unlockAdminMode() {
+      adminUnlocked = true;
+      try {
+        sessionStorage.setItem("mtg_admin_unlocked", "1");
+      } catch (e) {}
+      updateAdminAccessUI();
+      showToast("🔓 Admin tools unlocked for this browser tab.", "success");
+      switchTab("admin");
+    }
+
+    function lockAdminMode() {
+      adminUnlocked = false;
+      try {
+        sessionStorage.removeItem("mtg_admin_unlocked");
+      } catch (e) {}
+      cancelEdit();
+      updateAdminAccessUI();
+      switchTab("dashboard");
+      showToast("🔒 Admin tools locked.", "info");
+    }
+
+    function handleAdminSecretClick() {
+      if (adminUnlocked) return;
+      adminSecretClickCount += 1;
+      if (adminSecretClickTimer) clearTimeout(adminSecretClickTimer);
+
+      if (adminSecretClickCount >= 5) {
+        adminSecretClickCount = 0;
+        unlockAdminMode();
+        return;
+      }
+
+      adminSecretClickTimer = setTimeout(() => {
+        adminSecretClickCount = 0;
+      }, 1800);
+    }
 
     // ==========================================
     // SUPABASE LIVE CLOUD BACKEND INTEGRATION
@@ -1036,16 +1102,20 @@
       renderPreconCatalog();
       renderDashboard();
       renderLobbies();
+      updateAdminAccessUI();
       initSupabase();
     }
 
     function switchTab(tabId) {
+      if (tabId === "admin" && !requireAdminAccess("open Admin Tools")) return;
       if (tabId === 'pods') updateKnownPlayersDatalist();
       document.querySelectorAll(".tab-pane").forEach(el => el.classList.remove("active"));
       document.querySelectorAll("nav button").forEach(el => el.classList.remove("active"));
       document.getElementById("tab-" + tabId).classList.add("active");
       if (event && event.target && event.target.tagName === 'BUTTON') {
         event.target.classList.add("active");
+      } else if (tabId === "admin") {
+        document.getElementById("admin-nav-button")?.classList.add("active");
       }
 
       if (tabId === "dashboard") renderDashboard();
@@ -1758,6 +1828,7 @@
     }
 
     function deleteGame(encodedGameId) {
+      if (!requireAdminAccess("delete a recorded match")) return;
       if (!confirm("Are you sure you want to delete this match?")) return;
 
       const gameId = decodeURIComponent(encodedGameId);
@@ -1801,6 +1872,7 @@
     }
 
     function openEditGame(encodedGameId) {
+      if (!requireAdminAccess("edit a recorded match")) return;
       const gameId = decodeURIComponent(encodedGameId);
       const g = (leagueData.games || []).find(game => String(game.id) === gameId);
       if (!g) {
@@ -1842,6 +1914,7 @@
     }
 
     function addAdminRow() {
+      if (!requireAdminAccess("edit a recorded match")) return;
       const container = document.getElementById("edit-player-rows");
       const idx = container.querySelectorAll(".player-result-row").length;
       container.insertAdjacentHTML("beforeend", adminRowHTML({ name: "", deck: "", turnOrder: null }, idx));
@@ -1849,6 +1922,7 @@
 
     function saveAdminEdit(e) {
       e.preventDefault();
+      if (!requireAdminAccess("save match edits")) return;
       const gameId = document.getElementById("edit-game-id").value;
       const game = (leagueData.games || []).find(item => String(item.id) === gameId);
       if (!game) { alert("Select a match to edit first (or use Add Match in the settings tab)."); return; }
@@ -2366,6 +2440,10 @@
     }
 
     function importData(e) {
+      if (!requireAdminAccess("import league records")) {
+        e.target.value = "";
+        return;
+      }
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -2392,15 +2470,33 @@
     }
 
     async function clearData() {
-      if (confirm("⚠️ Reset all match history and active lobbies? This will clear both local storage AND the live Supabase cloud database!")) {
-        leagueData = { games: [], players: {}, lobbies: [] };
-        saveData();
-        refreshAllViews();
-        if (supabaseClient) {
-          await syncToCloud();
-        }
-        showToast("🗑️ All league data has been reset.", "info");
+      if (!requireAdminAccess("reset league records")) return;
+      if (!confirm("⚠️ Reset all match history and active lobbies? This will clear both local storage AND the live Supabase cloud database!")) return;
+
+      // Force-download a full backup before anything is wiped
+      try {
+        const blob = new Blob([JSON.stringify(leagueData, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `mtg_league_backup_before_reset_${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast("💾 Safety backup downloaded.", "info");
+      } catch (e) {}
+
+      const typed = (prompt("This action cannot be undone. Type RESET in capitals to permanently wipe all league data:") || "").trim();
+      if (typed !== "RESET") {
+        showToast("Reset cancelled — typed confirmation did not match.", "info");
+        return;
       }
+
+      leagueData = { games: [], players: {}, lobbies: [] };
+      saveData();
+      refreshAllViews();
+      if (supabaseClient) {
+        await syncToCloud();
+      }
+      showToast("🗑️ All league data has been reset.", "info");
     }
 
     // Datalist for autocomplete
