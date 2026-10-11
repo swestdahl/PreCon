@@ -449,7 +449,7 @@
       <div class="card" id="active-lobbies-card" style="margin-top: 20px;">
         <h2>
           <span>⚔️ Active Match Lobbies (<span id="lobby-count">0</span> Pending)</span>
-          <button class="btn btn-sm btn-secondary" onclick="clearAllLobbies()">Clear All Lobbies</button>
+          <button class="btn btn-sm btn-secondary admin-only-control" style="display: none;" onclick="clearAllLobbies()">Clear All Lobbies</button>
         </h2>
         <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.85rem;">TopDeck-style match lobbies: players report their precon and rank when the game ends. Click <b>✓ Verify & Record Match</b> to commit to the official standings.</p>
         <div id="lobbies-container">
@@ -810,6 +810,10 @@
       document.querySelectorAll(".admin-only-control").forEach(control => {
         control.style.display = adminUnlocked ? "" : "none";
       });
+      // Re-render Match History so its Delete buttons follow the lock state.
+      if (document.getElementById("games-container")) renderGames();
+      // Re-render lobbies so per-lobby Dismiss buttons follow the lock state.
+      if (document.getElementById("lobbies-container")) renderLobbies();
     }
 
     function requireAdminAccess(action = "use this control") {
@@ -1035,8 +1039,8 @@
                 console.log("Ignoring realtime echo of our own save:", lastLocalUpdatedAt);
                 return;
               }
-              const incoming = JSON.stringify(payload.new.data);
-              const current = JSON.stringify(leagueData);
+              const incoming = JSON.stringify(canonicalJSON(payload.new.data));
+              const current = JSON.stringify(canonicalJSON(leagueData));
               if (incoming === current) return;  // no-op update
               leagueData = payload.new.data;
               if (!Array.isArray(leagueData.games)) leagueData.games = [];
@@ -1064,7 +1068,41 @@
       }
     }
 
+    // Canonical JSON: sort keys recursively so comparisons are order-insensitive.
+    // Postgres jsonb reorders keys on storage, so a raw stringify can't detect
+    // echoes of our own saves.
+    function canonicalJSON(value) {
+      if (Array.isArray(value)) return value.map(canonicalJSON);
+      if (value && typeof value === "object") {
+        return Object.keys(value).sort().reduce((acc, k) => {
+          acc[k] = canonicalJSON(value[k]);
+          return acc;
+        }, {});
+      }
+      return value;
+    }
+
+    // True while the user has focus inside any editable field; defer DOM
+    // rebuilds until blur so typing never gets interrupted.
+    function userIsTyping() {
+      const el = document.activeElement;
+      return !!(el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+    }
+
+    let pendingRefreshTimer = null;
+
     function refreshAllViews() {
+      if (userIsTyping()) {
+        // Skip the rebuild now; retry shortly so the views catch up when
+        // the field is no longer focused.
+        if (!pendingRefreshTimer) {
+          pendingRefreshTimer = setTimeout(() => {
+            pendingRefreshTimer = null;
+            refreshAllViews();
+          }, 1200);
+        }
+        return;
+      }
       renderPreconCatalog();
       renderDashboard();
       renderLobbies();
@@ -1310,7 +1348,7 @@
         <div class="pod-card">
           <h3>
             <span>Round ${g.round} &mdash; ${g.date}</span>
-            <button class="btn btn-danger btn-sm" onclick="deleteGame(${games.length - 1 - gIdx})">Delete</button>
+            ${adminUnlocked ? `<button class="btn btn-danger btn-sm" onclick="deleteGame(${games.length - 1 - gIdx})">Delete</button>` : ''}
           </h3>
           <table>
             <thead>
@@ -2206,8 +2244,7 @@
               </div>
               <div style="display:flex; gap:6px;">
                 <button class="btn btn-sm btn-secondary" onclick="addLobbyPlayer('${lobby.id}')" style="font-size:0.8rem;">+ Add Player</button>
-                <button class="btn btn-sm btn-secondary" style="color:#f87171; font-size:0.8rem;" onclick="deleteLobby('${lobby.id}')">Dismiss Lobby</button>
-              </div>
+                ${adminUnlocked ? `<button class="btn btn-sm btn-secondary" style="color:#f87171; font-size:0.8rem;" onclick="deleteLobby('${lobby.id}')">Dismiss Lobby</button>` : ''}              </div>
             </div>
 
             <div style="overflow-x:auto;">
@@ -2326,6 +2363,7 @@
     }
 
     function deleteLobby(lobbyId) {
+      if (!requireAdminAccess("dismiss match lobbies")) return;
       if (!confirm("Dismiss this match lobby?")) return;
       if (!leagueData.lobbies) return;
       leagueData.lobbies = leagueData.lobbies.filter(l => l.id !== lobbyId);
@@ -2333,6 +2371,7 @@
     }
 
     function clearAllLobbies() {
+      if (!requireAdminAccess("clear all lobbies")) return;
       if (!leagueData.lobbies || leagueData.lobbies.length === 0) return;
       if (!confirm("Are you sure you want to clear all active match lobbies?")) return;
       leagueData.lobbies = [];
