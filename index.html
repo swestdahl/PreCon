@@ -343,8 +343,8 @@
   </header>
 
   <nav>
-    <button class="active" onclick="switchTab('dashboard')">📊 Dashboard & Standings</button>
-    <button onclick="switchTab('pods')">🎲 Pod Generator</button>
+    <button class="active" onclick="switchTab('pods')">🎲 Pod Generator & Lobbies</button>
+    <button onclick="switchTab('dashboard')">📊 Dashboard & Standings</button>
     <button onclick="switchTab('games')">⚔️ Match History</button>
     <button onclick="switchTab('precons')" id="tab-btn-precons" onclick="switchTab('precons')">📚 Precon Catalog</button>
     <button onclick="switchTab('players')">👥 Players & Decks</button>
@@ -355,7 +355,7 @@
 
   <main>
     <!-- TAB: DASHBOARD -->
-    <div id="tab-dashboard" class="tab-pane active">
+    <div id="tab-dashboard" class="tab-pane">
       <div class="grid-4">
         <div class="stat-box">
           <div class="val" id="stat-total-games">0</div>
@@ -403,7 +403,18 @@
     </div>
 
     <!-- TAB: POD GENERATOR -->
-    <div id="tab-pods" class="tab-pane">
+    <div id="tab-pods" class="tab-pane active">
+      <!-- PENDING MATCH LOBBIES -->
+      <div class="card" id="active-lobbies-card" style="margin-top: 20px;">
+        <h2>
+          <span>⚔️ Active Match Lobbies (<span id="lobby-count">0</span> Pending)</span>
+          <button class="btn btn-sm btn-secondary admin-only-control" style="display: none;" onclick="clearAllLobbies()">Clear All Lobbies</button>
+        </h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.85rem;">TopDeck-style match lobbies: players report their precon and rank when the game ends. Click <b>✓ Verify & Record Match</b> to commit to the official standings.</p>
+        <div id="lobbies-container">
+          <div style="text-align: center; color: var(--text-muted); padding: 24px;">No active match lobbies. Generate pods to spawn lobbies.</div>
+        </div>
+      </div>
       <div class="card">
         <h2>🎲 League Pod Generator & Match Lobbies</h2>
         <p style="color: var(--text-muted); margin-bottom: 16px;">Generate balanced pods for Game 1 or Game 2. Creating pods automatically generates <b>Live Match Lobbies</b> where players simply pick their precon deck, enter placements, and verify to record the match!</p>
@@ -445,17 +456,7 @@
         </div>
       </div>
 
-      <!-- PENDING MATCH LOBBIES -->
-      <div class="card" id="active-lobbies-card" style="margin-top: 20px;">
-        <h2>
-          <span>⚔️ Active Match Lobbies (<span id="lobby-count">0</span> Pending)</span>
-          <button class="btn btn-sm btn-secondary admin-only-control" style="display: none;" onclick="clearAllLobbies()">Clear All Lobbies</button>
-        </h2>
-        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.85rem;">TopDeck-style match lobbies: players report their precon and rank when the game ends. Click <b>✓ Verify & Record Match</b> to commit to the official standings.</p>
-        <div id="lobbies-container">
-          <div style="text-align: center; color: var(--text-muted); padding: 24px;">No active match lobbies. Generate pods above to spawn lobbies.</div>
-        </div>
-      </div>
+
     </div>
 
     <!-- TAB: MATCH HISTORY -->
@@ -772,6 +773,7 @@
     }
 
     function saveData() {
+      sessionDirty = true;
       leagueData.updatedAt = new Date().toISOString();
       ensureGameIds();
       localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
@@ -867,6 +869,15 @@
     let supabaseClient = null;
     let isCloudSyncing = false;
     let cloudSyncQueued = false;
+    // sessionDirty: set only when THIS device makes a real edit this session.
+    // Guards against a stale localStorage snapshot pushing itself over newer
+    // cloud data on app open (the rollback that wiped match history before).
+    let sessionDirty = false;
+    let CLIENT_ID = localStorage.getItem("mtg_league_client_id");
+    if (!CLIENT_ID) {
+      CLIENT_ID = "c-" + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem("mtg_league_client_id", CLIENT_ID);
+    }
     let cloudSyncTimeout = null;
     let lastLocalUpdatedAt = null;  // guards realtime echoes of our own upserts
 
@@ -943,7 +954,16 @@
 
           // Each save is a complete snapshot. Merging games by editable fields
           // caused old versions of edited and deleted matches to reappear.
-          if (localUpdatedAt > remoteUpdatedAt) {
+          //
+          // Overwrite rule (hardened after the 2026-10 data loss): local data
+          // only replaces newer cloud data if this device made a real edit
+          // during this session. A device with a stale localStorage snapshot
+          // that merely sat offline for weeks can no longer roll the cloud
+          // back by opening the app — it downloads instead. A clock skewed
+          // into the future can't win either, unless it has real edits.
+          const skewAhead = localUpdatedAt - Date.now();  // local claims future time
+          const canOverwrite = sessionDirty && localUpdatedAt > remoteUpdatedAt;
+          if (canOverwrite && skewAhead < 10 * 60 * 1000) {
             ensureGameIds();
             localStorage.setItem("mtg_precon_league_data", JSON.stringify(leagueData));
             refreshAllViews();
@@ -951,8 +971,12 @@
             console.log("Uploaded newer local league data to Supabase cloud.");
             return;
           }
+          if (canOverwrite) {
+            console.warn("Local clock looks skewed ahead; downloading cloud state instead of overwriting it.");
+          }
 
           leagueData = remote;
+          sessionDirty = false;  // adopting remote state; this device has no unsynced edits
           if (!Array.isArray(leagueData.games)) leagueData.games = [];
           if (!leagueData.players || typeof leagueData.players !== "object") leagueData.players = {};
           if (!Array.isArray(leagueData.lobbies)) leagueData.lobbies = [];
@@ -1014,6 +1038,16 @@
           }
         } else {
           updateCloudBadge("synced");
+          // Append-only history: every successful save also inserts a snapshot
+          // row. Fire-and-forget — if the table is missing, ignore silently.
+          supabaseClient
+            .from('league_snapshots')
+            .insert({ client_id: CLIENT_ID, data: leagueData, updated_at: sentAt })
+            .then(({ error: snapErr }) => {
+              if (snapErr && !String(snapErr.message || '').includes('league_snapshots')) {
+                console.warn('Snapshot insert failed:', snapErr.message);
+              }
+            });
         }
       } catch (err) {
         console.error("Error during syncToCloud:", err);
@@ -1042,6 +1076,7 @@
               const incoming = JSON.stringify(canonicalJSON(payload.new.data));
               const current = JSON.stringify(canonicalJSON(leagueData));
               if (incoming === current) return;  // no-op update
+              sessionDirty = false;  // adopting remote state; this device has no unsynced edits
               leagueData = payload.new.data;
               if (!Array.isArray(leagueData.games)) leagueData.games = [];
               if (!leagueData.players || typeof leagueData.players !== "object") leagueData.players = {};
@@ -2229,7 +2264,7 @@
       if (countSpan) countSpan.textContent = lobbies.length;
 
       if (lobbies.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">No active match lobbies. Generate pods above to spawn lobbies.</div>';
+        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">No active match lobbies. Generate pods to spawn lobbies.</div>';
         return;
       }
 
