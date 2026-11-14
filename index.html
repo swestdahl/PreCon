@@ -421,25 +421,25 @@
         
         <div class="grid-2">
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin: 0;">ENTER ATTENDING PLAYERS (one per line):</label>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="clearAttendingPlayers()" style="padding: 2px 8px; font-size: 0.75rem;">Clear List</button>
+            <div id="known-players-pills-container" style="margin-bottom: 14px;">
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">LEAGUE ROSTER <span style="font-weight:normal;">— click to select or deselect</span></div>
+              <div id="known-players-pills" style="display:flex; flex-wrap:wrap; gap:6px; padding:8px; background:#0f172a; border-radius:6px; border:1px solid #334155;"></div>
             </div>
-            <textarea id="pod-players-input" rows="6" placeholder="Lou&#10;Kate&#10;Jonah&#10;Juan&#10;Steven&#10;Matt&#10;Gabe&#10;Lucy" oninput="renderPlayerRosterPills()"></textarea>
-
-            <!-- Quick Add / Autocomplete Search -->
-            <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-              <input type="text" id="quick-add-player-input" list="known-players-datalist" placeholder="⚡ Quick-add known player..." style="margin: 0; padding: 6px 10px; font-size: 0.85rem; flex: 1;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); quickAddPlayer(); }">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="quickAddPlayer()" style="white-space: nowrap;">+ Add</button>
+            <div style="display:flex; gap:6px; margin-bottom:16px;">
+              <input type="text" id="quick-add-player-input" list="known-players-datalist" aria-label="Add new player" placeholder="Add new player..." style="margin:0; padding:6px 10px; font-size:0.85rem; flex:1; min-width:0;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); quickAddPlayer(); }">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="quickAddPlayer()" style="white-space:nowrap;">+ Add</button>
             </div>
-
-            <!-- Roster Clickable Tag Pills -->
-            <div id="known-players-pills-container" style="margin-bottom: 12px;">
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">LEAGUE ROSTER (Click to toggle attending):</div>
-              <div id="known-players-pills" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; padding: 6px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
-                <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No players recorded in match history yet.</span>
+            <div style="margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                <label style="font-size:0.85rem; color:var(--text-muted); font-weight:600; margin:0;">SELECTED PLAYERS (<span id="selected-player-count">0</span>)</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearAttendingPlayers()">Clear Selection</button>
               </div>
+              <div id="selected-players-review" aria-live="polite" style="display:flex; flex-wrap:wrap; gap:6px; padding:8px; min-height:36px; background:#0f172a; border:1px solid #334155; border-radius:6px;"></div>
             </div>
+            <details style="margin-bottom:14px;">
+              <summary style="cursor:pointer; color:var(--text-muted); font-size:0.8rem;">Manual / bulk entry</summary>
+              <textarea id="pod-players-input" rows="3" aria-label="Attending players, one per line" placeholder="One player per line" oninput="renderPlayerRosterPills()" style="margin-top:6px;"></textarea>
+            </details>
 
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="btn" onclick="generatePods(1)">🎲 Generate Game 1 Pod Lobbies</button>
@@ -1558,29 +1558,30 @@
 
     function renderPlayerRosterPills() {
       const container = document.getElementById("known-players-pills");
-      if (!container) return;
-      const players = getKnownLeaguePlayers();
-      if (players.length === 0) {
-        container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No players recorded in match history yet. As matches are logged, player roster pills will appear here!</span>';
-        return;
-      }
-      
       const textarea = document.getElementById("pod-players-input");
-      const currentLines = (textarea ? textarea.value : '').split('\n').map(l => l.trim().toLowerCase()).filter(Boolean);
-
-      container.innerHTML = players.map(name => {
-        const isPresent = currentLines.includes(name.toLowerCase());
-        const bg = isPresent ? 'var(--primary)' : '#1e293b';
-        const color = isPresent ? '#fff' : 'var(--text-muted)';
-        const border = isPresent ? '1px solid var(--accent)' : '1px solid #334155';
-        const icon = isPresent ? '✓ ' : '+ ';
-        return `
-          <button type="button" onclick="togglePlayerAttendance('${escapeHtml(name)}')" 
-                  style="background:${bg}; color:${color}; border:${border}; border-radius:14px; padding:3px 10px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:3px; transition:all 0.15s ease;">
-            <span>${icon}</span><span>${escapeHtml(name)}</span>
-          </button>
-        `;
-      }).join('');
+      if (!container || !textarea) return;
+      const selected = [...new Map(textarea.value.split('\n').map(n=>n.trim()).filter(Boolean).map(n=>[n.toLowerCase(),n])).values()];
+      const keys = new Set(selected.map(n=>n.toLowerCase()));
+      const players = [...new Map(getKnownLeaguePlayers().map(n=>[n.toLowerCase(),n])).values()];
+      const makePill = (name, present, review) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = review ? name + ' ×' : (present ? '✓ ' : '+ ') + name;
+        button.setAttribute('aria-label', (present ? 'Remove ' : 'Select ') + name);
+        if (!review) button.setAttribute('aria-pressed', String(present));
+        button.style.cssText = 'background:' + (present ? 'var(--primary)' : '#1e293b') + ';color:' + (present ? '#fff' : 'var(--text-muted)') + ';border:1px solid ' + (present ? 'var(--accent)' : '#334155') + ';border-radius:14px;padding:5px 11px;font-size:0.85rem;cursor:pointer;';
+        button.addEventListener('click',()=>togglePlayerAttendance(name));
+        return button;
+      };
+      container.replaceChildren(...players.map(name=>makePill(name,keys.has(name.toLowerCase()),false)));
+      if (!players.length) container.textContent = 'No roster players yet. Add a new player below.';
+      const review = document.getElementById('selected-players-review');
+      const count = document.getElementById('selected-player-count');
+      if (count) count.textContent = selected.length;
+      if (review) {
+        review.replaceChildren(...selected.map(name=>makePill(name,true,true)));
+        if (!selected.length) review.textContent = 'No players selected yet.';
+      }
     }
 
     function togglePlayerAttendance(name) {
@@ -1589,7 +1590,7 @@
       const lines = textarea.value.split('\n').map(l => l.trim()).filter(Boolean);
       const existingIdx = lines.findIndex(l => l.toLowerCase() === name.toLowerCase());
       if (existingIdx !== -1) {
-        lines.splice(existingIdx, 1);
+        for (let i = lines.length - 1; i >= 0; i--) { if (lines[i].toLowerCase() === name.toLowerCase()) lines.splice(i, 1); }
       } else {
         lines.push(name);
       }
@@ -1600,7 +1601,8 @@
     function quickAddPlayer() {
       const input = document.getElementById("quick-add-player-input");
       if (!input || !input.value.trim()) return;
-      const name = input.value.trim();
+      const typed = input.value.trim();
+      const name = getKnownLeaguePlayers().find(n => n.toLowerCase() === typed.toLowerCase()) || typed;
       const textarea = document.getElementById("pod-players-input");
       if (textarea) {
         const lines = textarea.value.split('\n').map(l => l.trim()).filter(Boolean);
@@ -1618,7 +1620,7 @@
         saveData();
       }
       input.value = '';
-      renderPlayerRosterPills();
+      updateKnownPlayersDatalist();
     }
 
     function clearAttendingPlayers() {
