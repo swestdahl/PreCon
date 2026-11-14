@@ -441,6 +441,13 @@
               <textarea id="pod-players-input" rows="3" aria-label="Attending players, one per line" placeholder="One player per line" oninput="renderPlayerRosterPills()" style="margin-top:6px;"></textarea>
             </details>
 
+            <div style="margin-bottom:12px;">
+              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-muted); cursor:pointer;">
+                <input type="checkbox" id="allow-three-player-pods" style="width:auto; margin:0; accent-color:var(--primary);" />
+                Allow 3-player pods
+              </label>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin:4px 0 0 24px;">9 players: 5 + 4 normally, or 3 + 3 + 3 when enabled.</div>
+            </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="btn" onclick="generatePods(1)">🎲 Generate Game 1 Pod Lobbies</button>
               <button class="btn btn-secondary" onclick="generatePods(2)">🏆 Pair Game 2 (Winners Pods)</button>
@@ -2133,6 +2140,19 @@
       renderLobbies();
     }
 
+    function choosePodSizes(total, allowThree) {
+  if (!Number.isInteger(total) || total < 3) return [];
+  const best=Array(total+1).fill(null);best[0]={sizes:[],cost:0};
+  const sizes=allowThree?[4,3,5,6]:[4,5,6];
+  const costs=allowThree?{3:1,4:0,5:4,6:6}:{4:0,5:1,6:3};
+  for(let n=1;n<=total;n++) for(const s of sizes) {
+    if(n<s||!best[n-s]) continue;
+    const p=best[n-s],cost=p.cost+costs[s];
+    if(!best[n]||cost<best[n].cost) best[n]={sizes:[...p.sizes,s],cost};
+  }
+  return best[total]?.sizes.sort((a,b)=>b-a)||[];
+}
+
     function generatePods(roundType) {
       const text = document.getElementById("pod-players-input").value.trim();
       if (!text) {
@@ -2194,34 +2214,12 @@
         playerPool = [...lines].sort(() => Math.random() - 0.5);
       }
 
-      // Optimal Commander Pod Partitioning (Favors 4-player pods, cleanly handles 3-player pods, handles 5/6 if needed)
       const total = playerPool.length;
-      let podSizes = [];
-      
-      if (total === 3) podSizes = [3];
-      else if (total === 4) podSizes = [4];
-      else if (total === 5) podSizes = [5];
-      else if (total === 6) podSizes = [3, 3];
-      else {
-        // Find best combination of 4s and 3s: 4*a + 3*b = total
-        let best = null;
-        for (let a = Math.floor(total / 4); a >= 0; a--) {
-          const rem = total - 4 * a;
-          if (rem % 3 === 0) {
-            const b = rem / 3;
-            best = { a, b };
-            break;
-          }
-        }
-        if (best) {
-          for (let i = 0; i < best.a; i++) podSizes.push(4);
-          for (let i = 0; i < best.b; i++) podSizes.push(3);
-        } else {
-          // Fallback
-          const num = Math.round(total / 4) || 1;
-          for (let i = 0; i < num; i++) podSizes.push(Math.floor(total / num));
-          for (let i = 0; i < total % num; i++) podSizes[i]++;
-        }
+      const allowThree = document.getElementById("allow-three-player-pods").checked;
+      const podSizes = choosePodSizes(total, allowThree);
+      if (!podSizes.length) {
+        showToast("Cannot form pods without a 3-player table. Enable Allow 3-player pods.", "error");
+        return;
       }
 
       const pods = [];
