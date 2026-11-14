@@ -531,14 +531,15 @@
             <thead>
               <tr>
                 <th>Player Name</th>
-                <th>Current / Most Played Deck</th>
+                <th title="Deck from the most recent completed match">Current Deck</th>
+                <th title="Most played since the latest January 1 or July 1 reset; ties go to the most recently played deck">Most Played Deck (This Cycle)</th>
                 <th>Games</th>
                 <th>Wins</th>
                 <th>Win %</th>
               </tr>
             </thead>
             <tbody id="players-list-body">
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No players recorded yet.</td></tr>
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No players recorded yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1414,49 +1415,56 @@
       `).join('');
     }
 
+    function summarizePlayerDecks(games, today, canonicalDeckName, normalizeName) {
+  const cycleStart = today.slice(0,4) + (today.slice(5,7) < '07' ? '-01-01' : '-07-01');
+  const players = new Map();
+  const newer = (a,b) => !b || a.date > b.date || (a.date === b.date && (a.round > b.round || (a.round === b.round && a.index > b.index)));
+  games.forEach((g,index) => {
+    const date = String(g.date || '').slice(0,10);
+    const stamp = {date,round:Number(String(g.round || '').match(/\d+/)?.[0] || 0),index};
+    const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= today;
+    (g.players || []).forEach(p => {
+      const name = normalizeName(p.name);
+      if (!players.has(name)) players.set(name,{name,games:0,wins:0,decks:new Map(),latest:null,currentDeck:'-'});
+      const entry = players.get(name);
+      entry.games++;
+      if (p.place === 1) entry.wins++;
+      const deck = canonicalDeckName(p.deck);
+      if (validDate && newer(stamp,entry.latest)) {
+        entry.latest = stamp;
+        entry.currentDeck = deck || '-';
+      }
+      if (!deck || !validDate || date < cycleStart) return;
+      const key = deck.toLowerCase();
+      if (!entry.decks.has(key)) entry.decks.set(key,{name:deck,count:0,latest:null});
+      const tally = entry.decks.get(key);
+      tally.count++;
+      if (newer(stamp,tally.latest)) { tally.latest=stamp; tally.name=deck; }
+    });
+  });
+  return [...players.values()].map(p => {
+    let top = null;
+    for (const d of p.decks.values()) if (!top || d.count > top.count || (d.count === top.count && newer(d.latest,top.latest))) top=d;
+    return {name:p.name,games:p.games,wins:p.wins,winRate:((p.wins/p.games)*100).toFixed(1),currentDeck:p.currentDeck,topDeck:top?.name || '-',topCount:top?.count || 0};
+  }).sort((a,b)=>b.games-a.games);
+}
+
     function renderPlayers() {
       renderRosterEditor();
       const tbody = document.getElementById("players-list-body");
-      const playerMap = {};
-      (leagueData.games || []).forEach(g => {
-        g.players.forEach(p => {
-          const name = normalizeName(p.name);
-          if (!playerMap[name]) playerMap[name] = { games: 0, wins: 0, decks: {} };
-          playerMap[name].games++;
-          if (p.place === 1) playerMap[name].wins++;
-          if (p.deck) {
-            playerMap[name].decks[canonicalDeckName(p.deck)] = (playerMap[name].decks[canonicalDeckName(p.deck)] || 0) + 1;
-          }
-        });
-      });
-
-      const list = Object.keys(playerMap).map(k => {
-        let topDeck = "-";
-        let maxD = 0;
-        for (let d in playerMap[k].decks) {
-          if (playerMap[k].decks[d] > maxD) {
-            maxD = playerMap[k].decks[d];
-            topDeck = d;
-          }
-        }
-        return {
-          name: k,
-          games: playerMap[k].games,
-          wins: playerMap[k].wins,
-          winRate: ((playerMap[k].wins / playerMap[k].games) * 100).toFixed(1),
-          topDeck: topDeck
-        };
-      }).sort((a,b) => b.games - a.games);
-
-      if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No players recorded yet.</td></tr>';
+      const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+      const datePart = type => parts.find(p => p.type === type).value;
+      const today = datePart('year') + '-' + datePart('month') + '-' + datePart('day');
+      const list = summarizePlayerDecks(leagueData.games || [], today, canonicalDeckName, normalizeName);
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No players recorded yet.</td></tr>';
         return;
       }
-
       tbody.innerHTML = list.map(p => `
         <tr>
-          <td><b>${p.name}</b></td>
-          <td>${p.topDeck}</td>
+          <td><b>${escapeHtml(p.name)}</b></td>
+          <td>${escapeHtml(p.currentDeck)}</td>
+          <td>${escapeHtml(p.topDeck)}${p.topCount ? ' <span style="color:var(--text-muted); font-size:0.8rem;">(' + p.topCount + ' ' + (p.topCount === 1 ? 'game' : 'games') + ')</span>' : ''}</td>
           <td>${p.games}</td>
           <td>${p.wins}</td>
           <td>${p.winRate}%</td>
