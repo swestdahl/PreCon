@@ -1414,7 +1414,10 @@
               </tr>
             </thead>
             <tbody>
-              ${g.players.map(p => `
+              ${g.players.slice().sort((a, b) => {
+                const rank = p => Number.isFinite(Number(p.place)) && Number(p.place) > 0 ? Number(p.place) : Infinity;
+                return rank(a) - rank(b);
+              }).map(p => `
                 <tr>
                   <td><b>${p.place}</b></td>
                   <td>${escapeHtml(normalizeName(p.name))}</td>
