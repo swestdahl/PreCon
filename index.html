@@ -1402,12 +1402,14 @@
             <span>Round ${g.round} &mdash; ${g.date}</span>
             ${adminUnlocked ? `<button class="btn btn-danger btn-sm" onclick="deleteGame(${games.length - 1 - gIdx})">Delete</button>` : ''}
           </h3>
+          <div style="overflow-x:auto;">
           <table>
             <thead>
               <tr>
                 <th>Place</th>
                 <th>Player</th>
                 <th>Deck</th>
+                <th>Commander</th>
                 <th>Turn Order</th>
               </tr>
             </thead>
@@ -1415,13 +1417,15 @@
               ${g.players.map(p => `
                 <tr>
                   <td><b>${p.place}</b></td>
-                  <td>${normalizeName(p.name)}</td>
-                  <td>${p.deck || '-'}</td>
+                  <td>${escapeHtml(normalizeName(p.name))}</td>
+                  <td>${escapeHtml(p.deck || '-')}</td>
+                  <td>${escapeHtml(String(p.commander || '').trim() || '—')}</td>
                   <td>${p.turnOrder ? 'Seat ' + p.turnOrder : '-'}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
+          </div>
         </div>
       `).join('');
     }
