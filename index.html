@@ -512,7 +512,8 @@
                 <th onclick="sortPrecons('status')" style="cursor: pointer;" title="Sort by Status">Status ↕</th>
                 <th onclick="sortPrecons('name')" style="cursor: pointer;" title="Sort by Deck Name">Deck Name ↕</th>
                 <th onclick="sortPrecons('commander')" style="cursor: pointer;" title="Sort by Face Commander">Face Commander ↕</th>
-                <th onclick="sortPrecons('alt_commander')" style="cursor: pointer; color: #38bdf8;" title="Sort by Alternate Commander">Alternate Commander(s) ↕</th>
+                <th onclick="sortPrecons('alt_commander')" style="cursor: pointer; color: #38bdf8;" title="Sort by Alternate Commander">Stock Alternate Commander(s) ↕</th>
+                <th onclick="sortPrecons('discovered')" style="cursor:pointer; color:#a78bfa;" title="Commanders observed in recorded league matches; not a legality ruling">League-Discovered Commanders ↕</th>
                 <th onclick="sortPrecons('colors')" style="cursor: pointer;" title="Sort by Colors">Colors ↕</th>
                 <th onclick="sortPrecons('set_code')" style="cursor: pointer;" title="Sort by Set">Set ↕</th>
                 <th>Details / Notes</th>
@@ -1204,6 +1205,7 @@
         document.getElementById("admin-nav-button")?.classList.add("active");
       }
 
+      if (tabId === "precons") renderPreconCatalog();
       if (tabId === "dashboard") renderDashboard();
       if (tabId === "pods") renderLobbies();
       if (tabId === "games") renderGames();
@@ -1251,6 +1253,7 @@
           <td><b>${d.name}</b></td>
           <td>${cmdHtml}</td>
           <td>${altHtml}</td>
+          <td style="color:#a78bfa;">${discoveredCommanderOptions(d).map(n => escapeHtml(n) + (isCommanderBanned(n) ? ' (Banned Cmd)' : '')).join(' / ') || '-'}</td>
           <td>${renderColorPips(d.colors)}</td>
           <td><span style="color:var(--text-muted)">${d.set_code || '-'}</span></td>
           <td style="font-size:0.8rem; color:var(--text-muted);">${d.notes || '-'}</td>
@@ -1282,6 +1285,7 @@
         const matchesSearch = d.name.toLowerCase().includes(search) || 
                               d.commander.toLowerCase().includes(search) || 
                               altText.includes(search) ||
+                              discoveredCommanderOptions(d).some(n => commanderKey(n).includes(commanderKey(search))) ||
                               (d.set_code && d.set_code.toLowerCase().includes(search));
         
         const leg = getDeckLegality(d.name);
@@ -1302,8 +1306,8 @@
 
       // Sorting
       filtered.sort((a, b) => {
-        let valA = a[preconSortCol] || '';
-        let valB = b[preconSortCol] || '';
+        let valA = preconSortCol === 'discovered' ? discoveredCommanderOptions(a).join(' / ') : a[preconSortCol] || '';
+        let valB = preconSortCol === 'discovered' ? discoveredCommanderOptions(b).join(' / ') : b[preconSortCol] || '';
         if (Array.isArray(valA)) valA = valA.join('');
         if (Array.isArray(valB)) valB = valB.join('');
         
@@ -1644,9 +1648,8 @@
     // alt commanders (p=2) win over legends found inside the 99 (p=1). Ties resolve
     // to the newer precon. Built from /space/precon_decks lists + PRECONS.
     // Build the global commander suggestion list from PRECONS (proper casing).
-    let CMD_SUGGESTIONS = null;
     function buildCommanderSuggestions() {
-      if (CMD_SUGGESTIONS) return CMD_SUGGESTIONS;
+      // Rebuild from current recorded history so corrections and deletions take effect.
       const seen = new Set();
       const out = [];
       PRECONS.forEach(p => {
@@ -1654,16 +1657,16 @@
         if (p.alt_commander && p.alt_commander !== '-') {
           p.alt_commander.split(/[\/\+]/).forEach(a => names.push(a.trim()));
         }
+        names.push(...discoveredCommanderOptions(p));
         names.forEach(n => {
           if (!n) return;
-          const key = n.toLowerCase();
+          const key = commanderKey(n);
           if (seen.has(key)) return;
           seen.add(key);
           out.push(n);
         });
       });
       out.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-      CMD_SUGGESTIONS = out;
       return out;
     }
 
@@ -1709,6 +1712,32 @@
       }
     }
 
+    function commanderKey(name) {
+      return String(name || '').trim().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    function stockCommanderOptions(deck) {
+      return [deck.commander, ...(deck.alt_commander || '').split(/\s+\/\s+/)]
+        .map(n => String(n || '').trim()).filter(n => n && n !== '-');
+    }
+
+    function discoveredCommanderOptions(deck) {
+      const key = canonicalDeckName(deck.name).toLowerCase();
+      const seen = new Set(stockCommanderOptions(deck).map(commanderKey));
+      const result = [];
+      for (const game of leagueData.games || []) {
+        for (const player of game.players || []) {
+          if (canonicalDeckName(player.deck).toLowerCase() !== key) continue;
+          const name = String(player.commander || '').trim();
+          const norm = commanderKey(name);
+          if (!norm || ['-', 'unknown', 'n/a', '?'].includes(norm) || seen.has(norm)) continue;
+          seen.add(norm);
+          result.push(name);
+        }
+      }
+      return result.sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base'}));
+    }
+
     function getDeckCommanderInfo(deckName) {
       if (!deckName) return { defaultCmd: '', options: [] };
       const d = PRECONS.find(p => p.name.toLowerCase() === canonicalDeckName(deckName).toLowerCase());
@@ -1726,7 +1755,7 @@
         const legalAlt = opts.find(o => !isCommanderBanned(o));
         if (legalAlt) def = legalAlt;
       }
-      return { defaultCmd: def, options: opts };
+      return { defaultCmd: def, options: [...opts, ...discoveredCommanderOptions(d)] };
     }
 
     function onDeckInputChange(deckInput) {
@@ -1882,12 +1911,14 @@
       rows.forEach((r, idx) => {
         const name = r.querySelector(".p-name").value.trim();
         const deck = r.querySelector(".p-deck").value.trim();
+        const commander = (r.querySelector(".p-commander")?.value || "").trim();
         const turnOrder = r.querySelector(".p-turn").value ? parseInt(r.querySelector(".p-turn").value) : null;
         if (name) {
           players.push({
             place: idx + 1,
             name: name,
             deck: deck,
+            commander: commander,
             turnOrder: turnOrder
           });
         }
@@ -1900,6 +1931,7 @@
 
       // Precon Ban validation
       for (const p of players) {
+        if (isCommanderBanned(p.commander)) { alert('Cannot log match: commander is banned in the Command Zone.'); return; }
         if (p.deck) {
           const leg = getDeckLegality(p.deck);
           if (leg.found && leg.isFullyBanned) {
@@ -1988,7 +2020,7 @@
 
     function adminRowHTML(p, idx) {
       return `
-        <div class="player-result-row" style="display:grid; gap:8px; grid-template-columns:50px 1fr 1fr 70px; margin-bottom:8px; align-items:end;">
+        <div class="player-result-row" style="display:grid; gap:8px; grid-template-columns:50px 1fr 1fr 1fr 70px; margin-bottom:8px; align-items:end;">
           <div class="form-group" style="margin:0;">
             <label>Place</label>
             <input type="number" class="p-place" value="${p.place ?? idx + 1}" min="1">
@@ -2000,6 +2032,11 @@
           <div class="form-group" style="margin:0;">
             <label>Deck</label>
             <input type="text" class="p-deck" value="${escapeHtml(p.deck || '')}" list="deck-suggestions">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Commander</label>
+            <input type="text" class="p-commander" value="${escapeHtml(p.commander || '')}" list="admin_cmd_${idx}" oninput="updateCommanderSuggestions(this)">
+            <datalist id="admin_cmd_${idx}" class="commander-datalist">${getDeckCommanderInfo(p.deck).options.map(n=>`<option value="${escapeHtml(n)}"></option>`).join('')}</datalist>
           </div>
           <div class="form-group" style="margin:0;">
             <label>Turn</label>
@@ -2026,9 +2063,10 @@
       rows.forEach((r, i) => {
         const name = r.querySelector(".p-name").value.trim();
         const deck = r.querySelector(".p-deck").value.trim();
+        const commander = (r.querySelector(".p-commander")?.value || "").trim();
         const place = parseInt(r.querySelector(".p-place").value) || i + 1;
         const turn = r.querySelector(".p-turn").value ? parseInt(r.querySelector(".p-turn").value) : null;
-        if (name) players.push({ place: place, name: name, deck: deck, turnOrder: turn });
+        if (name) players.push({ place: place, name: name, deck: deck, commander: commander, turnOrder: turn });
       });
       if (players.length < 2) { alert("Please enter at least 2 players."); return; }
       players.sort((a, b) => a.place - b.place);
@@ -2504,6 +2542,7 @@
       saveData();
       
       // Update all views immediately
+      renderPreconCatalog();
       renderDashboard();
       renderPlayers();
       renderGames();
